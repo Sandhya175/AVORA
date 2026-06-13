@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router';
 import { motion } from 'motion/react';
 import { ChevronLeft, ChevronRight, Plus, Clock, AlertCircle, CheckSquare, Tag } from 'lucide-react';
 import { useTheme, getTheme } from './ThemeContext';
-import { useIsMobile } from './ui/use-mobile';
+import { useIsMobile } from '../hooks/use-mobile';
 import { Task } from './TaskManagement';
 
 const DAYS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];

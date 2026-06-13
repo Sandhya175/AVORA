@@ -8,7 +8,7 @@ import {
 } from 'lucide-react';
 import { useTheme, getTheme } from './ThemeContext';
 import { AvoraLogo } from './AvoraLogo';
-import { useIsMobile } from './ui/use-mobile';
+import { useIsMobile } from '../hooks/use-mobile';
 
 const features = [
   { icon: CheckSquare, title: 'Smart Task Management', desc: 'Prioritize your daily checklist. Group tasks by category, set priorities, and track execution.' },

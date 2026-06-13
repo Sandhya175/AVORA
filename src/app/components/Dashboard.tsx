@@ -10,7 +10,7 @@ import {
   Tooltip, ResponsiveContainer, PieChart, Pie, Cell
 } from 'recharts';
 import { useTheme, getTheme } from './ThemeContext';
-import { useIsMobile, useIsTablet } from './ui/use-mobile';
+import { useIsMobile, useIsTablet } from '../hooks/use-mobile';
 import { useTaskContext } from '../context/TaskContext';
 
 interface StatCardProps {

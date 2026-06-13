@@ -3,7 +3,7 @@ import { motion } from 'motion/react';
 import { User, Bell, Palette, Lock, Globe, Download, Trash2, ChevronRight, Check, Moon, Sun, Monitor } from 'lucide-react';
 import { useTheme, getTheme } from './ThemeContext';
 import { AvoraLogo } from './AvoraLogo';
-import { useIsMobile } from './ui/use-mobile';
+import { useIsMobile } from '../hooks/use-mobile';
 
 const accentColors = [
   { name: 'Purple', primary: '#8B5CF6', secondary: '#6366F1' },

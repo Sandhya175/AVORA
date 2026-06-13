@@ -2,7 +2,7 @@ import { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { Send, Sparkles, User, Mic, Paperclip, RefreshCw, ThumbsUp, ThumbsDown, Copy } from 'lucide-react';
 import { useTheme, getTheme } from './ThemeContext';
-import { useIsMobile } from './ui/use-mobile';
+import { useIsMobile } from '../hooks/use-mobile';
 import { Task } from './TaskManagement';
 
 interface Message {
