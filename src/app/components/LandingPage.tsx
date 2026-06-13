@@ -67,22 +67,26 @@ function DashboardMockup({ isDark }: { isDark: boolean }) {
   const t = getTheme(isDark);
   const isMobile = useIsMobile();
   const cardStyle: React.CSSProperties = {
-    background: 'rgba(15, 23, 42, 0.45)',
+    background: t.glass,
     backdropFilter: 'blur(24px)',
     WebkitBackdropFilter: 'blur(24px)',
-    border: `1px solid rgba(255, 255, 255, 0.08)`,
+    border: `1px solid ${t.border}`,
     borderRadius: 20,
-    boxShadow: '0 30px 60px -15px rgba(0,0,0,0.8), 0 0 50px -10px rgba(139,92,246,0.15)',
+    boxShadow: isDark 
+      ? '0 30px 60px -15px rgba(0,0,0,0.8), 0 0 50px -10px rgba(139,92,246,0.15)'
+      : '0 30px 60px -15px rgba(139,92,246,0.1), 0 0 30px -10px rgba(139,92,246,0.1)',
     transition: 'all 0.5s ease',
   };
 
   const floatingWidgetStyle: React.CSSProperties = {
-    background: 'rgba(15, 23, 42, 0.55)',
+    background: t.glass,
     backdropFilter: 'blur(20px)',
     WebkitBackdropFilter: 'blur(20px)',
-    border: `1px solid rgba(255, 255, 255, 0.1)`,
+    border: `1px solid ${t.border}`,
     borderRadius: 16,
-    boxShadow: '0 20px 40px -10px rgba(0,0,0,0.7), 0 0 30px -5px rgba(139,92,246,0.2)',
+    boxShadow: isDark
+      ? '0 20px 40px -10px rgba(0,0,0,0.7), 0 0 30px -5px rgba(139,92,246,0.2)'
+      : '0 20px 40px -10px rgba(139,92,246,0.05), 0 0 20px -5px rgba(139,92,246,0.1)',
     zIndex: 10,
     pointerEvents: 'none',
   };
@@ -143,20 +147,22 @@ function DashboardMockup({ isDark }: { isDark: boolean }) {
         }}
         whileHover={isMobile ? {} : { 
           transform: 'rotateY(-8deg) rotateX(5deg) rotateZ(-1deg)',
-          boxShadow: '0 40px 80px -20px rgba(0,0,0,0.9), 0 0 60px rgba(139,92,246,0.25)' 
+          boxShadow: isDark
+            ? '0 40px 80px -20px rgba(0,0,0,0.9), 0 0 60px rgba(139,92,246,0.25)'
+            : '0 40px 80px -20px rgba(139,92,246,0.15), 0 0 40px rgba(139,92,246,0.15)'
         }}
         transition={{ type: 'spring', stiffness: 100, damping: 20 }}
       >
         {/* Mockup Sidebar */}
         <div style={{
           width: 54,
-          borderRight: '1px solid rgba(255, 255, 255, 0.08)',
+          borderRight: `1px solid ${t.borderSubtle}`,
           display: 'flex',
           flexDirection: 'column',
           alignItems: 'center',
           padding: '20px 0',
           gap: 22,
-          background: 'rgba(5, 8, 22, 0.3)',
+          background: isDark ? 'rgba(5, 8, 22, 0.3)' : 'rgba(248, 247, 255, 0.3)',
           borderTopLeftRadius: 20,
           borderBottomLeftRadius: 20,
         }}>
@@ -179,10 +185,10 @@ function DashboardMockup({ isDark }: { isDark: boolean }) {
           <div style={{ width: 28, height: 28, borderRadius: 8, background: 'rgba(139,92,246,0.15)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#8B5CF6' }}>
             <Home size={15} />
           </div>
-          <div style={{ color: 'rgba(255,255,255,0.4)', cursor: 'default' }}><CheckSquare size={15} /></div>
-          <div style={{ color: 'rgba(255,255,255,0.4)', cursor: 'default' }}><Calendar size={15} /></div>
-          <div style={{ color: 'rgba(255,255,255,0.4)', cursor: 'default' }}><BarChart2 size={15} /></div>
-          <div style={{ color: 'rgba(255,255,255,0.4)', cursor: 'default', marginTop: 'auto' }}><Settings size={15} /></div>
+          <div style={{ color: t.textDim, cursor: 'default' }}><CheckSquare size={15} /></div>
+          <div style={{ color: t.textDim, cursor: 'default' }}><Calendar size={15} /></div>
+          <div style={{ color: t.textDim, cursor: 'default' }}><BarChart2 size={15} /></div>
+          <div style={{ color: t.textDim, cursor: 'default', marginTop: 'auto' }}><Settings size={15} /></div>
         </div>
 
         {/* Mockup Main Panel */}
@@ -190,12 +196,12 @@ function DashboardMockup({ isDark }: { isDark: boolean }) {
           {/* Mockup Top Header */}
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
             <div>
-              <div style={{ fontSize: 10, color: 'rgba(255,255,255,0.4)', letterSpacing: '0.02em' }}>Good Morning,</div>
-              <div style={{ fontSize: 14, fontWeight: 700, color: 'white', marginTop: 1, display: 'flex', alignItems: 'center', gap: 4 }}>
+              <div style={{ fontSize: 10, color: t.textMuted, letterSpacing: '0.02em' }}>Good Morning,</div>
+              <div style={{ fontSize: 14, fontWeight: 700, color: t.text, marginTop: 1, display: 'flex', alignItems: 'center', gap: 4 }}>
                 Let's make today productive <span style={{ fontSize: 13 }}>🚀</span>
               </div>
             </div>
-            <div style={{ color: 'rgba(255,255,255,0.5)', background: 'rgba(255,255,255,0.05)', borderRadius: 8, padding: 6 }}>
+            <div style={{ color: t.textMuted, background: t.inputBg, borderRadius: 8, padding: 6 }}>
               <Bell size={13} />
             </div>
           </div>
@@ -209,21 +215,21 @@ function DashboardMockup({ isDark }: { isDark: boolean }) {
               { label: 'Focus Time', value: '2.4h' },
             ].map((stat, i) => (
               <div key={i} style={{
-                background: 'rgba(255,255,255,0.03)',
-                border: '1px solid rgba(255,255,255,0.05)',
+                background: t.inputBg,
+                border: `1px solid ${t.borderSubtle}`,
                 borderRadius: 10,
                 padding: '8px 4px',
                 textAlign: 'center'
               }}>
-                <div style={{ fontSize: 13, fontWeight: 800, color: 'white', letterSpacing: '-0.02em' }}>{stat.value}</div>
-                <div style={{ fontSize: 8, color: 'rgba(255,255,255,0.4)', marginTop: 2, whiteSpace: 'nowrap' }}>{stat.label}</div>
+                <div style={{ fontSize: 13, fontWeight: 800, color: t.text, letterSpacing: '-0.02em' }}>{stat.value}</div>
+                <div style={{ fontSize: 8, color: t.textMuted, marginTop: 2, whiteSpace: 'nowrap' }}>{stat.label}</div>
               </div>
             ))}
           </div>
 
           {/* Today's Tasks */}
           <div>
-            <div style={{ fontSize: 11, fontWeight: 600, color: 'rgba(255,255,255,0.4)', marginBottom: 10 }}>Today's Tasks</div>
+            <div style={{ fontSize: 11, fontWeight: 600, color: t.textMuted, marginBottom: 10 }}>Today's Tasks</div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 7 }}>
               {tasks.map((task, i) => (
                 <div key={i} style={{ 
@@ -231,14 +237,14 @@ function DashboardMockup({ isDark }: { isDark: boolean }) {
                   alignItems: 'center', 
                   gap: 10, 
                   padding: '7px 0', 
-                  borderBottom: i < tasks.length - 1 ? '1px solid rgba(255,255,255,0.04)' : 'none' 
+                  borderBottom: i < tasks.length - 1 ? `1px solid ${t.borderSubtle}` : 'none' 
                 }}>
                   {/* Custom Checkbox */}
                   <div style={{
                     width: 15,
                     height: 15,
                     borderRadius: 4.5,
-                    border: task.done ? 'none' : '1.5px solid rgba(255,255,255,0.25)',
+                    border: task.done ? 'none' : `1.5px solid ${isDark ? 'rgba(255,255,255,0.25)' : 'rgba(0,0,0,0.18)'}`,
                     background: task.done ? 'linear-gradient(135deg,#8B5CF6,#6366F1)' : 'transparent',
                     display: 'flex',
                     alignItems: 'center',
@@ -251,7 +257,7 @@ function DashboardMockup({ isDark }: { isDark: boolean }) {
                   <div style={{
                     flex: 1,
                     fontSize: 11,
-                    color: task.done ? 'rgba(255,255,255,0.4)' : 'white',
+                    color: task.done ? t.textDim : t.text,
                     textDecoration: task.done ? 'line-through' : 'none',
                     overflow: 'hidden',
                     textOverflow: 'ellipsis',
@@ -271,7 +277,7 @@ function DashboardMockup({ isDark }: { isDark: boolean }) {
                   }}>
                     {task.category}
                   </span>
-                  <div style={{ color: 'rgba(255,255,255,0.3)', display: 'flex' }}><MoreHorizontal size={13} /></div>
+                  <div style={{ color: t.textDim, display: 'flex' }}><MoreHorizontal size={13} /></div>
                 </div>
               ))}
             </div>
@@ -294,10 +300,10 @@ function DashboardMockup({ isDark }: { isDark: boolean }) {
             textAlign: 'center',
           }}
         >
-          <div style={{ fontSize: 9, color: 'rgba(255,255,255,0.4)', fontWeight: 500, marginBottom: 8 }}>Focus Score</div>
+          <div style={{ fontSize: 9, color: t.textMuted, fontWeight: 500, marginBottom: 8 }}>Focus Score</div>
           <div style={{ position: 'relative', display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}>
             <svg width={54} height={54} style={{ transform: 'rotate(-90deg)' }}>
-              <circle cx={27} cy={27} r={22} fill="none" stroke="rgba(255,255,255,0.05)" strokeWidth={4} />
+              <circle cx={27} cy={27} r={22} fill="none" stroke={isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.04)'} strokeWidth={4} />
               <circle cx={27} cy={27} r={22} fill="none" stroke="url(#hero-fs-grad)" strokeWidth={4}
                 strokeDasharray={2 * Math.PI * 22} strokeDashoffset={2 * Math.PI * 22 * 0.14} strokeLinecap="round" />
               <defs>
@@ -306,7 +312,7 @@ function DashboardMockup({ isDark }: { isDark: boolean }) {
                 </linearGradient>
               </defs>
             </svg>
-            <div style={{ position: 'absolute', fontSize: 13, fontWeight: 800, color: 'white' }}>86%</div>
+            <div style={{ position: 'absolute', fontSize: 13, fontWeight: 800, color: t.text }}>86%</div>
           </div>
           <div style={{ fontSize: 8, color: '#A855F7', fontWeight: 600, marginTop: 8 }}>Keep it up! 🔥</div>
         </motion.div>
@@ -326,7 +332,7 @@ function DashboardMockup({ isDark }: { isDark: boolean }) {
             padding: '12px 14px',
           }}
         >
-          <div style={{ fontSize: 9, color: 'rgba(255,255,255,0.4)', fontWeight: 500, marginBottom: 8 }}>Weekly Progress</div>
+          <div style={{ fontSize: 9, color: t.textMuted, fontWeight: 500, marginBottom: 8 }}>Weekly Progress</div>
           <div style={{ display: 'flex', alignItems: 'flex-end', gap: 4, height: 38 }}>
             {[30, 50, 40, 70, 55, 85, 60].map((v, i) => (
               <div key={i} style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2 }}>
@@ -335,13 +341,13 @@ function DashboardMockup({ isDark }: { isDark: boolean }) {
                   borderRadius: 2,
                   background: i === 6 
                     ? 'linear-gradient(180deg,#A855F7,#8B5CF6)' 
-                    : 'rgba(139,92,246,0.25)',
+                    : isDark ? 'rgba(139,92,246,0.25)' : 'rgba(139,92,246,0.15)',
                   height: `${(v / 100) * 32}px`,
                   minHeight: 2,
                   alignSelf: 'flex-end',
                   boxShadow: i === 6 ? '0 0 10px rgba(168,85,247,0.5)' : 'none',
                 }} />
-                <span style={{ fontSize: 7, color: 'rgba(255,255,255,0.3)', transform: 'scale(0.95)' }}>{['M','T','W','T','F','S','S'][i]}</span>
+                <span style={{ fontSize: 7, color: t.textDim, transform: 'scale(0.95)' }}>{['M','T','W','T','F','S','S'][i]}</span>
               </div>
             ))}
           </div>
@@ -362,9 +368,9 @@ function DashboardMockup({ isDark }: { isDark: boolean }) {
             padding: '12px 14px',
           }}
         >
-          <div style={{ fontSize: 9, color: 'rgba(255,255,255,0.4)', fontWeight: 500, marginBottom: 4 }}>Goals</div>
-          <div style={{ fontSize: 11, fontWeight: 700, color: 'white', marginBottom: 8 }}>3/5 Completed</div>
-          <div style={{ height: 4, borderRadius: 2, background: 'rgba(255,255,255,0.07)', width: '100%', overflow: 'hidden' }}>
+          <div style={{ fontSize: 9, color: t.textMuted, fontWeight: 500, marginBottom: 4 }}>Goals</div>
+          <div style={{ fontSize: 11, fontWeight: 700, color: t.text, marginBottom: 8 }}>3/5 Completed</div>
+          <div style={{ height: 4, borderRadius: 2, background: isDark ? 'rgba(255,255,255,0.07)' : 'rgba(0,0,0,0.05)', width: '100%', overflow: 'hidden' }}>
             <div style={{ height: '100%', width: '60%', background: 'linear-gradient(90deg, #8B5CF6, #A855F7)', borderRadius: 2 }} />
           </div>
         </motion.div>
@@ -577,8 +583,10 @@ export function LandingPage() {
               {/* Badge */}
               <div style={{
                 display: 'inline-flex', alignItems: 'center', gap: 8, marginBottom: 20,
-                background: 'rgba(15, 23, 42, 0.45)', backdropFilter: 'blur(10px)',
-                border: `1px solid rgba(255, 255, 255, 0.08)`, borderRadius: 30, padding: '5px 14px 5px 6px',
+                background: isDark ? 'rgba(15, 23, 42, 0.45)' : 'rgba(241, 240, 255, 0.8)',
+                backdropFilter: 'blur(10px)',
+                border: `1px solid ${isDark ? 'rgba(255, 255, 255, 0.08)' : 'rgba(139, 92, 246, 0.15)'}`,
+                borderRadius: 30, padding: '5px 14px 5px 6px',
               }}>
                 <div style={{ width: 20, height: 20, borderRadius: '50%', background: 'linear-gradient(135deg, #8B5CF6, #A855F7)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                   <Sparkles size={10} color="white" />
@@ -894,7 +902,7 @@ export function LandingPage() {
         <div style={{ cursor: 'pointer' }} onClick={() => scrollToSection('home')}>
           <AvoraLogo size="sm" />
         </div>
-        <div style={{ fontSize: 13, color: t.textDim }}>© 2026 AVORA Inc. All rights reserved.</div>
+        <div style={{ fontSize: 13, color: t.textDim }}>© 2026 AVORA. All rights reserved.</div>
         <div style={{ display: 'flex', gap: 20 }}>
           {['Privacy Policy', 'Terms of Service', 'Support'].map(l => (
             <button key={l} style={{ background: 'none', border: 'none', cursor: 'pointer', color: t.textDim, fontSize: 13 }}>{l}</button>

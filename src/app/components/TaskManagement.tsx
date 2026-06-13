@@ -21,10 +21,16 @@ export interface Task {
 }
 
 const initialTasks: Task[] = [
-  { id: '1', title: 'Design AVORA Brand Guidelines', description: 'Create brand rules, typography scales, and a unified color scheme.', category: 'Work', priority: 'high', due: '2026-06-15', done: false, status: 'in_progress', progress: 65, starred: true },
-  { id: '2', title: 'Integrate LocalStorage Sync', description: 'Verify that tasks, settings, and themes persist across page reloads.', category: 'Work', priority: 'high', due: '2026-06-13', done: true, status: 'completed', progress: 100, starred: false },
-  { id: '3', title: 'Implement Mobile Nav Drawer', description: 'Ensure the sidebar collapses into a hamburger menu on small devices.', category: 'Study', priority: 'medium', due: '2026-06-14', done: false, status: 'pending', progress: 0, starred: false },
-  { id: '4', title: 'Cardio Workout Session', description: 'Complete a 45-minute HIIT workout session and stretch.', category: 'Health', priority: 'low', due: '2026-06-15', done: false, status: 'pending', progress: 0, starred: false },
+  { id: '1', title: 'Integrate LocalStorage Sync', description: 'Verify that tasks, settings, and themes persist across page reloads.', category: 'Work', priority: 'high', due: '2026-06-13', done: true, status: 'completed', progress: 100, starred: false },
+  { id: '2', title: 'Configure Vite Development Environment', description: 'Set up build pipelines, optimization plugins, and server ports.', category: 'Study', priority: 'medium', due: '2026-06-12', done: true, status: 'completed', progress: 100, starred: false },
+  { id: '3', title: 'Establish Base CSS Theme Tokens', description: 'Define dark/light color palettes, transitions, and glow constants.', category: 'Work', priority: 'high', due: '2026-06-11', done: true, status: 'completed', progress: 100, starred: true },
+  { id: '4', title: 'Conduct Security Auditing on Local Storage', description: 'Sanitize stored inputs and verify secure data isolation.', category: 'Finance', priority: 'urgent', due: '2026-06-10', done: true, status: 'completed', progress: 100, starred: false },
+  { id: '5', title: 'Build Homepage Hero Section', description: 'Implement glassmorphism cards and neon glow graphics.', category: 'Work', priority: 'high', due: '2026-06-14', done: false, status: 'in_progress', progress: 45, starred: true },
+  { id: '6', title: 'Resolve Dropdown Clipping in Tasks List', description: 'Lift active menu stacking context to prevent elements rendering underneath.', category: 'Work', priority: 'high', due: '2026-06-14', done: false, status: 'in_progress', progress: 80, starred: false },
+  { id: '7', title: 'Polish Interactive Chart Widgets', description: 'Add hover animations and custom SVG gradients to the analytics tab.', category: 'Study', priority: 'medium', due: '2026-06-15', done: false, status: 'in_progress', progress: 30, starred: false },
+  { id: '8', title: 'Implement Mobile Nav Drawer', description: 'Ensure the sidebar collapses into a hamburger menu on small devices.', category: 'Study', priority: 'medium', due: '2026-06-16', done: false, status: 'pending', progress: 0, starred: false },
+  { id: '9', title: 'Schedule Cardio Workout Session', description: 'Complete a 45-minute HIIT workout session and full body stretch.', category: 'Health', priority: 'low', due: '2026-06-15', done: false, status: 'pending', progress: 0, starred: false },
+  { id: '10', title: 'Plan Weekly Grocery Shopping', description: 'List ingredients for high-protein meals and batch prep meals.', category: 'Shopping', priority: 'low', due: '2026-06-16', done: false, status: 'pending', progress: 0, starred: false }
 ];
 
 const catColors: Record<string, string> = {
@@ -54,7 +60,12 @@ export function TaskManagement() {
   // Local Storage Task State
   const [tasks, setTasks] = useState<Task[]>(() => {
     const saved = localStorage.getItem('avora_tasks');
-    if (saved) return JSON.parse(saved);
+    const seeded = localStorage.getItem('avora_tasks_seeded_v2');
+    if (saved && seeded === 'true') {
+      return JSON.parse(saved);
+    }
+    localStorage.setItem('avora_tasks', JSON.stringify(initialTasks));
+    localStorage.setItem('avora_tasks_seeded_v2', 'true');
     return initialTasks;
   });
 
@@ -344,7 +355,7 @@ export function TaskManagement() {
       </div>
 
       {/* Task List Container */}
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 12, paddingBottom: 100 }}>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 12, paddingBottom: 200 }}>
         {filtered.length === 0 ? (
           <div style={{ ...card, textAlign: 'center', padding: '48px', color: t.textMuted }}>
             <AlertCircle size={24} style={{ margin: '0 auto 12px', color: t.textDim }} />
@@ -368,7 +379,8 @@ export function TaskManagement() {
                   gap: 12,
                   opacity: isCompleted ? 0.65 : 1,
                   position: 'relative',
-                  overflow: 'visible'
+                  overflow: 'visible',
+                  zIndex: activeMenu === task.id ? 50 : 1
                 }}
               >
                 {/* Upper line */}
@@ -445,30 +457,24 @@ export function TaskManagement() {
                             >
                               <Edit2 size={13} /> Edit Details
                             </button>
-                            {task.status !== 'completed' && (
-                              <button
-                                onClick={() => handleStatusChange(task.id, 'completed')}
-                                style={{ width: '100%', display: 'flex', alignItems: 'center', gap: 8, padding: '8px 10px', background: 'none', border: 'none', borderRadius: 6, color: t.text, fontSize: 12, cursor: 'pointer', textAlign: 'left' }}
-                              >
-                                <Check size={13} /> Complete Task
-                              </button>
-                            )}
-                            {task.status !== 'in_progress' && (
-                              <button
-                                onClick={() => handleStatusChange(task.id, 'in_progress')}
-                                style={{ width: '100%', display: 'flex', alignItems: 'center', gap: 8, padding: '8px 10px', background: 'none', border: 'none', borderRadius: 6, color: t.text, fontSize: 12, cursor: 'pointer', textAlign: 'left' }}
-                              >
-                                <Play size={13} /> Start Progress
-                              </button>
-                            )}
-                            {task.status !== 'pending' && (
-                              <button
-                                onClick={() => handleStatusChange(task.id, 'pending')}
-                                style={{ width: '100%', display: 'flex', alignItems: 'center', gap: 8, padding: '8px 10px', background: 'none', border: 'none', borderRadius: 6, color: t.text, fontSize: 12, cursor: 'pointer', textAlign: 'left' }}
-                              >
-                                <Clock size={13} /> Mark Pending
-                              </button>
-                            )}
+                            <button
+                              onClick={() => handleStatusChange(task.id, 'completed')}
+                              style={{ width: '100%', display: 'flex', alignItems: 'center', gap: 8, padding: '8px 10px', background: 'none', border: 'none', borderRadius: 6, color: t.text, fontSize: 12, cursor: 'pointer', textAlign: 'left' }}
+                            >
+                              <Check size={13} /> Complete Task
+                            </button>
+                            <button
+                              onClick={() => handleStatusChange(task.id, 'in_progress')}
+                              style={{ width: '100%', display: 'flex', alignItems: 'center', gap: 8, padding: '8px 10px', background: 'none', border: 'none', borderRadius: 6, color: t.text, fontSize: 12, cursor: 'pointer', textAlign: 'left' }}
+                            >
+                              <Play size={13} /> Start Progress
+                            </button>
+                            <button
+                              onClick={() => handleStatusChange(task.id, 'pending')}
+                              style={{ width: '100%', display: 'flex', alignItems: 'center', gap: 8, padding: '8px 10px', background: 'none', border: 'none', borderRadius: 6, color: t.text, fontSize: 12, cursor: 'pointer', textAlign: 'left' }}
+                            >
+                              <Clock size={13} /> Mark Pending
+                            </button>
                             <button
                               onClick={() => setTaskToDelete(task.id)}
                               style={{ width: '100%', display: 'flex', alignItems: 'center', gap: 8, padding: '8px 10px', background: 'none', border: 'none', borderRadius: 6, color: '#EF4444', fontSize: 12, cursor: 'pointer', textAlign: 'left' }}
