@@ -1,27 +1,47 @@
 import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 
-export type Theme = 'dark' | 'light';
+export type Theme = 'dark' | 'light' | 'system';
 
 interface ThemeContextType {
   theme: Theme;
-  toggleTheme: () => void;
+  setTheme: (theme: Theme) => void;
   isDark: boolean;
 }
 
 export const ThemeContext = createContext<ThemeContextType>({
-  theme: 'dark',
-  toggleTheme: () => {},
+  theme: 'system',
+  setTheme: () => {},
   isDark: true,
 });
 
 export function ThemeProvider({ children }: { children: ReactNode }) {
-  const [theme, setTheme] = useState<Theme>('dark');
+  const [theme, setThemeState] = useState<Theme>(() => {
+    const saved = localStorage.getItem('avora_theme') as Theme;
+    return saved || 'dark';
+  });
 
-  const toggleTheme = () => setTheme(t => (t === 'dark' ? 'light' : 'dark'));
+  const [isDark, setIsDark] = useState(true);
+
+  useEffect(() => {
+    localStorage.setItem('avora_theme', theme);
+    if (theme === 'system') {
+      const media = window.matchMedia('(prefers-color-scheme: dark)');
+      setIsDark(media.matches);
+      const listener = (e: MediaQueryListEvent) => {
+        setIsDark(e.matches);
+      };
+      media.addEventListener('change', listener);
+      return () => media.removeEventListener('change', listener);
+    } else {
+      setIsDark(theme === 'dark');
+    }
+  }, [theme]);
+
+  const setTheme = (t: Theme) => setThemeState(t);
 
   return (
-    <ThemeContext.Provider value={{ theme, toggleTheme, isDark: theme === 'dark' }}>
-      <div style={{ minHeight: '100vh', background: theme === 'dark' ? '#050816' : '#F8F7FF', transition: 'background 0.3s ease' }}>
+    <ThemeContext.Provider value={{ theme, setTheme, isDark }}>
+      <div style={{ minHeight: '100vh', background: isDark ? '#050816' : '#F8F7FF', transition: 'background 0.3s ease' }}>
         {children}
       </div>
     </ThemeContext.Provider>

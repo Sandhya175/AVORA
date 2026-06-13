@@ -1,43 +1,89 @@
 import { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { Send, Sparkles, Bot, User, Mic, Paperclip, RefreshCw, ThumbsUp, ThumbsDown, Copy } from 'lucide-react';
+import { Send, Sparkles, User, Mic, Paperclip, RefreshCw, ThumbsUp, ThumbsDown, Copy } from 'lucide-react';
 import { useTheme, getTheme } from './ThemeContext';
+import { useIsMobile } from './ui/use-mobile';
+import { Task } from './TaskManagement';
 
 interface Message {
-  id: string; role: 'user' | 'ai'; text: string; time: string;
+  id: string;
+  role: 'user' | 'ai';
+  text: string;
+  time: string;
 }
 
 const quickPrompts = [
-  '📋 Summarize my tasks for today',
+  '📋 Summarize my tasks',
   '🎯 What should I focus on first?',
-  '📊 How was my productivity this week?',
-  '🗓️ Schedule my tasks for tomorrow',
-  '💡 Give me productivity tips',
-  '⚡ Create a focus plan for today',
+  '📊 Give me productivity stats',
+  '🗓️ Create a schedule plan',
+  '⚡ Show urgent tasks',
 ];
 
-const initialMessages: Message[] = [
-  {
-    id: '1', role: 'ai', time: '9:00 AM',
-    text: "Good morning! I'm your AVORA AI assistant. I can help you organize your day, prioritize tasks, analyze your productivity trends, and keep you on track.\n\nYou have **5 tasks** due today and your focus score is **88%** — great start! 🚀\n\nWhat would you like to work on?",
-  },
-];
-
-const aiResponses: Record<string, string> = {
-  default: "I'm here to help! Could you tell me more about what you'd like to accomplish? I can help with task management, scheduling, productivity insights, and more.",
-  tasks: "Based on your current tasks, here's my recommended order:\n\n1. 🔴 **Fix responsive issues** (High priority, due today)\n2. 🟡 **Design landing page UI** (High priority, in progress at 65%)\n3. 🟢 **Prepare for presentation** (Tomorrow's deadline)\n\nWould you like me to schedule focused work blocks for these?",
-  focus: "Your **peak productivity hours** are between **9–11 AM** and **3–5 PM** based on your history. I recommend:\n\n• 9:00 AM — Start with the most challenging task\n• 11:00 AM — Short break (5 min)\n• 11:05 AM — Continue on secondary tasks\n\nShall I activate Focus Mode now?",
-  productivity: "Here's your productivity summary for this week:\n\n📊 **Overall Score:** 92/100 (↑ 8 pts)\n✅ **Tasks Completed:** 50 (↑ 32%)\n⏱️ **Total Focus Time:** 21.2 hours\n🔥 **Current Streak:** 6 days\n\nYou're on track for your best week ever! Keep it up! 💪",
-  schedule: "I'll create a balanced schedule for tomorrow:\n\n**Morning Block (9–12)**\n• 9:00 Fix responsive issues (2h)\n• 11:00 Code review (1h)\n\n**Afternoon Block (2–5)**\n• 2:00 Client presentation prep (2h)\n• 4:00 Email & admin (1h)\n\nWant me to block these in your calendar?",
-};
-
-function getAIResponse(text: string): string {
+function getDynamicAIResponse(text: string, tasks: Task[], focusHours: number): string {
   const lower = text.toLowerCase();
-  if (lower.includes('task') || lower.includes('today') || lower.includes('focus on first')) return aiResponses.tasks;
-  if (lower.includes('focus plan') || lower.includes('focus on') || lower.includes('productive')) return aiResponses.focus;
-  if (lower.includes('productivity') || lower.includes('week') || lower.includes('stats') || lower.includes('summary')) return aiResponses.productivity;
-  if (lower.includes('schedule') || lower.includes('tomorrow')) return aiResponses.schedule;
-  return aiResponses.default;
+  
+  const completed = tasks.filter(t => t.done).length;
+  const total = tasks.length;
+  const pending = tasks.filter(t => !t.done);
+  const inProgress = tasks.filter(t => t.status === 'in_progress');
+  const urgentTasks = tasks.filter(t => t.priority === 'urgent' || t.priority === 'high');
+
+  if (lower.includes('summarize') || lower.includes('summary')) {
+    if (total === 0) {
+      return "You currently have no tasks in your workspace. Try creating a task first! 📋";
+    }
+    const categoriesList = Array.from(new Set(tasks.map(t => t.category))).join(', ');
+    return `Here is your dynamic task summary:\n\n📋 **Total Tasks:** ${total}\n✅ **Completed:** ${completed}\n⏱️ **In Progress:** ${inProgress.length}\n💤 **Pending:** ${pending.length - inProgress.length}\n\n**Categories Active:** ${categoriesList || 'None'}`;
+  }
+
+  if (lower.includes('focus') || lower.includes('first') || lower.includes('today')) {
+    if (pending.length === 0) {
+      return "Excellent work! All of your tasks are completed. You have nothing pending to focus on today! 🎉";
+    }
+    
+    // Sort pending tasks by priority (urgent > high > medium > low) and then by due date
+    const priValues = { urgent: 4, high: 3, medium: 2, low: 1 };
+    const sorted = [...pending].sort((a, b) => {
+      const pDiff = (priValues[b.priority] || 2) - (priValues[a.priority] || 2);
+      if (pDiff !== 0) return pDiff;
+      return new Date(a.due).getTime() - new Date(b.due).getTime();
+    });
+
+    const recommendations = sorted.slice(0, 3).map((t, idx) => {
+      const prioEmoji = t.priority === 'urgent' || t.priority === 'high' ? '🔴' : t.priority === 'medium' ? '🟡' : '🟢';
+      return `${idx + 1}. ${prioEmoji} **${t.title}** (Priority: ${t.priority.toUpperCase()}, due ${t.due})`;
+    }).join('\n');
+
+    return `Based on your active tasks, here's my recommended focus order:\n\n${recommendations}\n\nWould you like me to schedule a Pomodoro session for these? ⚡`;
+  }
+
+  if (lower.includes('urgent') || lower.includes('high priority')) {
+    const activeUrgent = pending.filter(t => t.priority === 'urgent' || t.priority === 'high');
+    if (activeUrgent.length === 0) {
+      return "No urgent or high priority tasks on your active schedule right now! Great job staying ahead. 🙌";
+    }
+    const list = activeUrgent.map((t, idx) => `• 🔴 **${t.title}** (Category: ${t.category}, due ${t.due})`).join('\n');
+    return `Here are your urgent/high-priority tasks:\n\n${list}\n\nI recommend tackling these first during your peak productivity blocks. 🚀`;
+  }
+
+  if (lower.includes('productivity') || lower.includes('performance') || lower.includes('stats')) {
+    const rate = total > 0 ? Math.round((completed / total) * 100) : 0;
+    return `Here is your real-time productivity score sheet:\n\n📈 **Completion Rate:** ${rate}%\n✅ **Tasks Done:** ${completed}\n⏱️ **Total Focus Hours:** ${focusHours}h\n🔥 **Active Tasks Remaining:** ${pending.length}\n\nKeep focusing! Small consistent steps turn plans into progress. 💪`;
+  }
+
+  if (lower.includes('schedule') || lower.includes('tomorrow') || lower.includes('plan')) {
+    if (pending.length === 0) {
+      return "Your schedule is clear! No pending tasks. Enjoy some rest or add new goals. 🌟";
+    }
+    const scheduleList = pending.slice(0, 2).map((t, idx) => {
+      const time = idx === 0 ? "9:00 AM" : "11:00 AM";
+      return `• ${time} — **${t.title}** (${t.category})`;
+    }).join('\n');
+    return `Here is a custom focus schedule for tomorrow:\n\n**Morning block (9 AM - 12 PM)**\n${scheduleList}\n• 12:00 PM — Rest and break (30m)\n\n**Afternoon block (1 PM - 4 PM)**\n• Review progress and wrap up administrative tasks.\n\nLet me know if you would like to edit or adjust this! 🗓️`;
+  }
+
+  return "I'm your AVORA assistant. Try asking me:\n\n• \"What should I focus on first?\"\n• \"Summarize my tasks\"\n• \"Show urgent tasks\"\n• \"Give me productivity stats\"";
 }
 
 function formatAIText(text: string) {
@@ -50,10 +96,50 @@ function formatAIText(text: string) {
 export function AIAssistant() {
   const { isDark } = useTheme();
   const t = getTheme(isDark);
-  const [messages, setMessages] = useState<Message[]>(initialMessages);
+  const isMobile = useIsMobile();
+  const bottomRef = useRef<HTMLDivElement>(null);
+
+  const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState('');
   const [typing, setTyping] = useState(false);
-  const bottomRef = useRef<HTMLDivElement>(null);
+
+  // Load context from LocalStorage
+  const [tasks, setTasks] = useState<Task[]>([]);
+  const [focusHours, setFocusHours] = useState(2.4);
+
+  useEffect(() => {
+    const loadContext = () => {
+      const savedTasks = localStorage.getItem('avora_tasks');
+      if (savedTasks) {
+        setTasks(JSON.parse(savedTasks));
+      }
+      const savedFocusSeconds = localStorage.getItem('avora_focus_seconds');
+      if (savedFocusSeconds) {
+        setFocusHours(Number((Number(savedFocusSeconds) / 3600).toFixed(1)));
+      }
+    };
+    loadContext();
+    window.addEventListener('storage', loadContext);
+    window.addEventListener('tasks_updated', loadContext);
+    return () => {
+      window.removeEventListener('storage', loadContext);
+      window.removeEventListener('tasks_updated', loadContext);
+    };
+  }, []);
+
+  // Initialize welcome message with real numbers
+  useEffect(() => {
+    const pendingCount = tasks.filter(t => !t.done).length;
+    const rate = tasks.length > 0 ? Math.round((tasks.filter(t => t.done).length / tasks.length) * 100) : 88;
+    setMessages([
+      {
+        id: 'welcome',
+        role: 'ai',
+        time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+        text: `Good day! I'm your AVORA AI assistant. I can help you organize your day, prioritize tasks, analyze your productivity trends, and keep you on track.\n\nYou currently have **${pendingCount} pending tasks** and your overall completion rate is **${rate}%**. 🚀\n\nWhat would you like to work on today?`
+      }
+    ]);
+  }, [tasks.length]); // reset only when task count changes
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -66,10 +152,11 @@ export function AIAssistant() {
     setInput('');
     setTyping(true);
     setTimeout(() => {
-      const aiMsg: Message = { id: (Date.now() + 1).toString(), role: 'ai', text: getAIResponse(text), time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) };
+      const response = getDynamicAIResponse(text, tasks, focusHours);
+      const aiMsg: Message = { id: (Date.now() + 1).toString(), role: 'ai', text: response, time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) };
       setMessages(prev => [...prev, aiMsg]);
       setTyping(false);
-    }, 1400 + Math.random() * 800);
+    }, 800 + Math.random() * 600);
   };
 
   const card: React.CSSProperties = {
@@ -77,12 +164,15 @@ export function AIAssistant() {
     border: `1px solid ${t.border}`, borderRadius: 18, boxShadow: t.shadow,
   };
 
+  const pendingCount = tasks.filter(t => !t.done).length;
+  const rate = tasks.length > 0 ? Math.round((tasks.filter(t => t.done).length / tasks.length) * 100) : 0;
+
   return (
-    <div style={{ display: 'grid', gridTemplateColumns: '1fr 280px', gap: 20, height: 'calc(100vh - 140px)' }}>
+    <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 280px', gap: 20, height: isMobile ? 'calc(100vh - 160px)' : 'calc(100vh - 140px)' }}>
       {/* Chat Area */}
       <div style={{ ...card, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
         {/* Chat Header */}
-        <div style={{ padding: '16px 20px', borderBottom: `1px solid ${t.borderSubtle}`, display: 'flex', alignItems: 'center', gap: 12 }}>
+        <div style={{ padding: '12px 20px', borderBottom: `1px solid ${t.borderSubtle}`, display: 'flex', alignItems: 'center', gap: 12 }}>
           <div style={{ position: 'relative' }}>
             <div style={{ width: 40, height: 40, borderRadius: '50%', background: 'linear-gradient(135deg,#8B5CF6,#A855F7)', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 0 16px rgba(139,92,246,0.45)' }}>
               <Sparkles size={18} color="white" />
@@ -90,15 +180,15 @@ export function AIAssistant() {
             <div style={{ position: 'absolute', bottom: 0, right: 0, width: 10, height: 10, borderRadius: '50%', background: '#22C55E', border: `2px solid ${t.cardBg}` }} />
           </div>
           <div>
-            <div style={{ fontSize: 15, fontWeight: 600, color: t.text }}>AVORA AI</div>
-            <div style={{ fontSize: 11, color: '#22C55E' }}>Online · Ready to help</div>
+            <div style={{ fontSize: 14, fontWeight: 700, color: t.text }}>AVORA Assistant</div>
+            <div style={{ fontSize: 11, color: '#22C55E' }}>Online · Ready to analyze</div>
           </div>
-          <button onClick={() => setMessages(initialMessages)} style={{ marginLeft: 'auto', background: t.inputBg, border: `1px solid ${t.border}`, borderRadius: 8, padding: '6px 10px', cursor: 'pointer', color: t.textMuted, display: 'flex', alignItems: 'center', gap: 5, fontSize: 12 }}>
+          <button onClick={() => setMessages(prev => prev.slice(0, 1))} style={{ marginLeft: 'auto', background: t.inputBg, border: `1px solid ${t.border}`, borderRadius: 8, padding: '6px 10px', cursor: 'pointer', color: t.textMuted, display: 'flex', alignItems: 'center', gap: 5, fontSize: 12 }}>
             <RefreshCw size={12} /> New Chat
           </button>
         </div>
 
-        {/* Messages */}
+        {/* Messages list */}
         <div style={{ flex: 1, overflowY: 'auto', padding: '20px', display: 'flex', flexDirection: 'column', gap: 16 }}>
           <AnimatePresence>
             {messages.map(msg => (
@@ -129,17 +219,17 @@ export function AIAssistant() {
                       : (isDark ? 'rgba(139,92,246,0.08)' : 'rgba(139,92,246,0.06)'),
                     border: `1px solid ${msg.role === 'user' ? 'transparent' : t.border}`,
                     color: msg.role === 'user' ? 'white' : t.text,
-                    fontSize: 14, lineHeight: 1.6,
+                    fontSize: 13.5, lineHeight: 1.6,
                     boxShadow: msg.role === 'user' ? '0 4px 14px rgba(139,92,246,0.35)' : t.shadow,
                   }}>
                     {formatAIText(msg.text)}
                   </div>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                     <span style={{ fontSize: 10, color: t.textDim }}>{msg.time}</span>
-                    {msg.role === 'ai' && (
+                    {msg.role === 'ai' && msg.id !== 'welcome' && (
                       <div style={{ display: 'flex', gap: 6 }}>
-                        {[{ icon: ThumbsUp, label: 'up' }, { icon: ThumbsDown, label: 'down' }, { icon: Copy, label: 'copy' }].map(a => (
-                          <button key={a.label} style={{ background: 'none', border: 'none', cursor: 'pointer', color: t.textDim, display: 'flex', padding: 2 }}>
+                        {[{ icon: ThumbsUp, label: 'up' }, { icon: ThumbsDown, label: 'down' }, { icon: Copy, label: 'copy' }].map((a, idx) => (
+                          <button key={idx} style={{ background: 'none', border: 'none', cursor: 'pointer', color: t.textDim, display: 'flex', padding: 2 }}>
                             <a.icon size={11} />
                           </button>
                         ))}
@@ -170,7 +260,7 @@ export function AIAssistant() {
           <div ref={bottomRef} />
         </div>
 
-        {/* Input */}
+        {/* Input area */}
         <div style={{ padding: '14px 20px', borderTop: `1px solid ${t.borderSubtle}` }}>
           <div style={{ display: 'flex', gap: 10, alignItems: 'flex-end' }}>
             <div style={{ flex: 1, display: 'flex', alignItems: 'center', gap: 8, background: t.inputBg, border: `1px solid ${t.border}`, borderRadius: 14, padding: '10px 14px' }}>
@@ -179,8 +269,8 @@ export function AIAssistant() {
                 value={input}
                 onChange={e => setInput(e.target.value)}
                 onKeyDown={e => e.key === 'Enter' && !e.shiftKey && sendMessage(input)}
-                placeholder="Ask me anything about your productivity..."
-                style={{ flex: 1, background: 'transparent', border: 'none', outline: 'none', color: t.text, fontSize: 14 }}
+                placeholder="Ask AVORA AI about your tasks..."
+                style={{ flex: 1, background: 'transparent', border: 'none', outline: 'none', color: t.text, fontSize: 13.5 }}
               />
               <button style={{ background: 'none', border: 'none', cursor: 'pointer', color: t.textDim, display: 'flex', flexShrink: 0 }}><Mic size={15} /></button>
             </div>
@@ -203,57 +293,49 @@ export function AIAssistant() {
         </div>
       </div>
 
-      {/* Sidebar */}
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-        {/* Quick Prompts */}
-        <div style={{ ...card, padding: '18px' }}>
-          <div style={{ fontSize: 13, fontWeight: 600, color: t.text, marginBottom: 12 }}>Quick Actions</div>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-            {quickPrompts.map(prompt => (
-              <motion.button
-                key={prompt}
-                whileHover={{ x: 4, background: isDark ? 'rgba(139,92,246,0.12)' : 'rgba(139,92,246,0.08)' }}
-                onClick={() => sendMessage(prompt.slice(2).trim())}
-                style={{
-                  textAlign: 'left', padding: '9px 12px', borderRadius: 10, cursor: 'pointer', border: 'none',
-                  background: isDark ? 'rgba(139,92,246,0.06)' : 'rgba(139,92,246,0.04)',
-                  color: t.textMuted, fontSize: 12.5, transition: 'all 0.15s',
-                }}
-              >
-                {prompt}
-              </motion.button>
-            ))}
+      {/* Sidebar Panel - Hidden on Mobile */}
+      {!isMobile && (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+          {/* Quick Prompts */}
+          <div style={{ ...card, padding: '18px' }}>
+            <div style={{ fontSize: 13, fontWeight: 600, color: t.text, marginBottom: 12 }}>Quick Actions</div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+              {quickPrompts.map(prompt => (
+                <button
+                  key={prompt}
+                  onClick={() => sendMessage(prompt.slice(2).trim())}
+                  style={{
+                    textAlign: 'left', padding: '9px 12px', borderRadius: 10, cursor: 'pointer', border: 'none',
+                    background: isDark ? 'rgba(139,92,246,0.06)' : 'rgba(139,92,246,0.04)',
+                    color: t.textMuted, fontSize: 12, transition: 'all 0.15s',
+                  }}
+                  onMouseEnter={e => e.currentTarget.style.background = isDark ? 'rgba(139,92,246,0.12)' : 'rgba(139,92,246,0.08)'}
+                  onMouseLeave={e => e.currentTarget.style.background = isDark ? 'rgba(139,92,246,0.06)' : 'rgba(139,92,246,0.04)'}
+                >
+                  {prompt}
+                </button>
+              ))}
+            </div>
           </div>
-        </div>
 
-        {/* Context Panel */}
-        <div style={{ ...card, padding: '18px' }}>
-          <div style={{ fontSize: 13, fontWeight: 600, color: t.text, marginBottom: 12 }}>Today's Context</div>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-            {[
-              { label: 'Pending Tasks', value: '5', color: t.primary },
-              { label: 'Focus Score', value: '88%', color: '#22C55E' },
-              { label: 'Hours Focused', value: '1.7h', color: '#F59E0B' },
-              { label: 'Next Deadline', value: 'Today, 3 PM', color: '#EF4444' },
-            ].map(item => (
-              <div key={item.label} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '6px 0', borderBottom: `1px solid ${t.borderSubtle}` }}>
-                <span style={{ fontSize: 12, color: t.textMuted }}>{item.label}</span>
-                <span style={{ fontSize: 12, fontWeight: 600, color: item.color }}>{item.value}</span>
-              </div>
-            ))}
+          {/* Context Panel */}
+          <div style={{ ...card, padding: '18px' }}>
+            <div style={{ fontSize: 13, fontWeight: 600, color: t.text, marginBottom: 12 }}>Today\'s Context</div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+              {[
+                { label: 'Pending Tasks', value: String(pendingCount), color: t.primary },
+                { label: 'Completion Rate', value: `${rate}%`, color: '#10B981' },
+                { label: 'Hours Focused', value: `${focusHours}h`, color: '#F59E0B' },
+              ].map(item => (
+                <div key={item.label} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '6px 0', borderBottom: `1px solid ${t.borderSubtle}` }}>
+                  <span style={{ fontSize: 12, color: t.textMuted }}>{item.label}</span>
+                  <span style={{ fontSize: 12, fontWeight: 600, color: item.color }}>{item.value}</span>
+                </div>
+              ))}
+            </div>
           </div>
         </div>
-
-        {/* Capabilities */}
-        <div style={{ ...card, padding: '18px' }}>
-          <div style={{ fontSize: 13, fontWeight: 600, color: t.text, marginBottom: 12 }}>AI Capabilities</div>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-            {['📋 Task summarization', '🗓️ Smart scheduling', '📊 Productivity insights', '🎯 Goal coaching', '⚡ Daily planning', '🔍 Pattern analysis'].map(cap => (
-              <div key={cap} style={{ fontSize: 12, color: t.textMuted, padding: '4px 0' }}>{cap}</div>
-            ))}
-          </div>
-        </div>
-      </div>
+      )}
     </div>
   );
 }

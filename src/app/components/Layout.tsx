@@ -1,8 +1,9 @@
 import { Outlet, NavLink, useNavigate, useLocation } from 'react-router';
+import { useState, useEffect } from 'react';
 import {
   LayoutDashboard, CheckSquare, Calendar, BarChart2, Brain,
   MessageSquare, Settings, Search, Bell, Sun, Moon, Plus,
-  Target, Zap, ChevronRight, User,
+  ChevronRight, User, Menu, X, PanelLeftClose, PanelLeft, PlusCircle
 } from 'lucide-react';
 import { useTheme, getTheme } from './ThemeContext';
 import { AvoraLogo } from './AvoraLogo';
@@ -18,10 +19,10 @@ const navItems = [
 ];
 
 const pageTitles: Record<string, { title: string; sub: string }> = {
-  '/app': { title: 'Good Morning, Sandhya! 🌅', sub: "Let's make today productive" },
+  '/app': { title: 'Dashboard', sub: "Track your performance and progress" },
   '/app/tasks': { title: 'Task Management', sub: 'Organize your work efficiently' },
   '/app/calendar': { title: 'Calendar', sub: 'Plan your schedule' },
-  '/app/analytics': { title: 'Analytics', sub: 'Track your performance' },
+  '/app/analytics': { title: 'Analytics & Insights', sub: 'Track your performance trends' },
   '/app/focus': { title: 'Focus Mode', sub: 'Deep work, zero distractions' },
   '/app/ai': { title: 'AI Assistant', sub: 'Your smart productivity partner' },
   '/app/settings': { title: 'Settings', sub: 'Customize your experience' },
@@ -51,26 +52,100 @@ const CircularProgress = ({ value, size = 64, isDark }: { value: number; size?: 
 };
 
 export function Layout() {
-  const { isDark, toggleTheme } = useTheme();
+  const { theme, setTheme, isDark } = useTheme();
   const t = getTheme(isDark);
   const location = useLocation();
   const navigate = useNavigate();
-  const pageInfo = pageTitles[location.pathname] || { title: 'AVORA', sub: 'Productivity Platform' };
+  
+  // Custom screen width detector
+  const [windowWidth, setWindowWidth] = useState(typeof window !== 'undefined' ? window.innerWidth : 1200);
+  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
+  const [isMobileDrawerOpen, setIsMobileDrawerOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [focusScore, setFocusScore] = useState(88);
+
+  useEffect(() => {
+    const handleResize = () => setWindowWidth(window.innerWidth);
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
+  // Sync search input with URL query param if user edits from headers
+  useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    const q = params.get('q') || '';
+    setSearchQuery(q);
+  }, [location.search]);
+
+  // Compute focus score from localstorage tasks
+  useEffect(() => {
+    const updateStats = () => {
+      const savedTasks = localStorage.getItem('avora_tasks');
+      if (savedTasks) {
+        const parsed = JSON.parse(savedTasks);
+        if (parsed.length > 0) {
+          const done = parsed.filter((task: any) => task.done).length;
+          const score = Math.round((done / parsed.length) * 100);
+          setFocusScore(score || 0);
+        }
+      }
+    };
+    updateStats();
+    window.addEventListener('storage', updateStats);
+    // Custom event to update stats locally
+    window.addEventListener('tasks_updated', updateStats);
+    return () => {
+      window.removeEventListener('storage', updateStats);
+      window.removeEventListener('tasks_updated', updateStats);
+    };
+  }, []);
+
+  const isMobile = windowWidth < 768;
+  const isTablet = windowWidth >= 768 && windowWidth < 1024;
+  const isDesktop = windowWidth >= 1024;
+
+  const toggleTheme = () => setTheme(isDark ? 'light' : 'dark');
+
+  // Adjust sidebar state when resizing between states
+  useEffect(() => {
+    if (isTablet) {
+      setIsSidebarCollapsed(true);
+    } else if (isDesktop) {
+      setIsSidebarCollapsed(false);
+    }
+  }, [isTablet, isDesktop]);
+
+  const activeSidebarWidth = isMobile ? 0 : (isSidebarCollapsed ? 64 : 220);
 
   const sidebarStyle: React.CSSProperties = {
-    width: 220,
-    minWidth: 220,
+    width: isSidebarCollapsed ? 64 : 220,
+    minWidth: isSidebarCollapsed ? 64 : 220,
     height: '100vh',
     background: t.sidebarBg,
     borderRight: `1px solid ${t.border}`,
-    display: 'flex',
+    display: isMobile ? 'none' : 'flex',
     flexDirection: 'column',
     position: 'fixed',
     left: 0,
     top: 0,
     zIndex: 40,
     boxShadow: isDark ? '4px 0 24px rgba(0,0,0,0.4)' : '4px 0 24px rgba(139,92,246,0.06)',
-    overflowY: 'auto',
+    transition: 'all 0.3s ease',
+  };
+
+  const mobileSidebarStyle: React.CSSProperties = {
+    width: 240,
+    height: '100vh',
+    background: t.sidebarBg,
+    borderRight: `1px solid ${t.border}`,
+    display: 'flex',
+    flexDirection: 'column',
+    position: 'fixed',
+    left: isMobileDrawerOpen ? 0 : -250,
+    top: 0,
+    zIndex: 51,
+    boxShadow: '8px 0 32px rgba(0,0,0,0.5)',
+    transition: 'left 0.3s ease',
   };
 
   const glassCard: React.CSSProperties = {
@@ -80,80 +155,160 @@ export function Layout() {
     backdropFilter: 'blur(12px)',
   };
 
+  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const query = e.target.value;
+    setSearchQuery(query);
+    navigate(`/app/tasks?q=${encodeURIComponent(query)}`);
+  };
+
+  const renderNavLinks = (onClickItem?: () => void) => {
+    return navItems.map(item => {
+      const isActive = location.pathname === item.path || (item.path !== '/app' && location.pathname.startsWith(item.path));
+      return (
+        <NavLink
+          key={item.path}
+          to={item.path}
+          end={item.path === '/app'}
+          onClick={onClickItem}
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: isSidebarCollapsed && !isMobile ? 'center' : 'flex-start',
+            gap: isSidebarCollapsed && !isMobile ? 0 : 10,
+            padding: '10px 12px',
+            borderRadius: 10,
+            marginBottom: 3,
+            textDecoration: 'none',
+            color: isActive ? '#FFFFFF' : t.textMuted,
+            background: isActive
+              ? 'linear-gradient(135deg, #8B5CF6, #6366F1)'
+              : 'transparent',
+            boxShadow: isActive ? '0 4px 14px rgba(139, 92, 246, 0.35)' : 'none',
+            transition: 'all 0.2s ease',
+            fontSize: 13.5,
+            fontWeight: isActive ? 600 : 400,
+          }}
+          onMouseEnter={e => {
+            if (!isActive) {
+              (e.currentTarget as HTMLElement).style.background = isDark ? 'rgba(139,92,246,0.1)' : 'rgba(139,92,246,0.06)';
+              (e.currentTarget as HTMLElement).style.color = t.primary;
+            }
+          }}
+          onMouseLeave={e => {
+            if (!isActive) {
+              (e.currentTarget as HTMLElement).style.background = 'transparent';
+              (e.currentTarget as HTMLElement).style.color = t.textMuted;
+            }
+          }}
+        >
+          <item.icon size={17} style={{ flexShrink: 0 }} />
+          {(!isSidebarCollapsed || isMobile) && <span>{item.label}</span>}
+        </NavLink>
+      );
+    });
+  };
+
+  const pageInfo = pageTitles[location.pathname] || { title: 'AVORA', sub: 'Productivity Platform' };
+
   return (
     <div style={{ display: 'flex', minHeight: '100vh', background: t.bg }}>
-      {/* Sidebar */}
-      <aside style={sidebarStyle}>
-        {/* Logo */}
-        <div style={{ padding: '22px 20px 18px', borderBottom: `1px solid ${t.borderSubtle}` }}>
-          <AvoraLogo size="default" />
-          <div style={{ marginTop: 4, fontSize: 10, color: t.textDim, letterSpacing: '0.06em' }}>
-            Productivity Mode <span style={{ color: t.primary }}>PRO</span>
+      
+      {/* Mobile Drawer Overlay */}
+      {isMobile && isMobileDrawerOpen && (
+        <div
+          onClick={() => setIsMobileDrawerOpen(false)}
+          style={{
+            position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', zIndex: 50,
+            backdropFilter: 'blur(4px)', WebkitBackdropFilter: 'blur(4px)'
+          }}
+        />
+      )}
+
+      {/* Mobile Sidebar */}
+      {isMobile && (
+        <aside style={mobileSidebarStyle}>
+          <div style={{ padding: '20px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderBottom: `1px solid ${t.borderSubtle}` }}>
+            <AvoraLogo size="default" />
+            <button onClick={() => setIsMobileDrawerOpen(false)} style={{ background: 'none', border: 'none', color: t.text, cursor: 'pointer' }}>
+              <X size={20} />
+            </button>
           </div>
-        </div>
-
-        {/* Nav */}
-        <nav style={{ padding: '14px 12px', flex: 1 }}>
-          {navItems.map(item => {
-            const isActive = location.pathname === item.path;
-            return (
-              <NavLink
-                key={item.path}
-                to={item.path}
-                end={item.path === '/app'}
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: 10,
-                  padding: '10px 12px',
-                  borderRadius: 10,
-                  marginBottom: 3,
-                  textDecoration: 'none',
-                  color: isActive ? '#FFFFFF' : t.textMuted,
-                  background: isActive
-                    ? 'linear-gradient(135deg, #8B5CF6, #6366F1)'
-                    : 'transparent',
-                  boxShadow: isActive ? '0 4px 14px rgba(139, 92, 246, 0.35)' : 'none',
-                  transition: 'all 0.2s ease',
-                  fontSize: 13.5,
-                  fontWeight: isActive ? 600 : 400,
-                }}
-                onMouseEnter={e => {
-                  if (!isActive) {
-                    (e.currentTarget as HTMLElement).style.background = isDark ? 'rgba(139,92,246,0.1)' : 'rgba(139,92,246,0.06)';
-                    (e.currentTarget as HTMLElement).style.color = t.primary;
-                  }
-                }}
-                onMouseLeave={e => {
-                  if (!isActive) {
-                    (e.currentTarget as HTMLElement).style.background = 'transparent';
-                    (e.currentTarget as HTMLElement).style.color = t.textMuted;
-                  }
-                }}
-              >
-                <item.icon size={17} />
-                {item.label}
-              </NavLink>
-            );
-          })}
-        </nav>
-
-        {/* Focus Score Widget */}
-        <div style={{ padding: '0 12px 20px' }}>
-          <div style={{ ...glassCard, padding: '14px', textAlign: 'center' }}>
-            <div style={{ fontSize: 11, color: t.textMuted, marginBottom: 8, letterSpacing: '0.04em' }}>Focus Score</div>
-            <div style={{ position: 'relative', display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}>
-              <CircularProgress value={88} size={64} isDark={isDark} />
-              <div style={{ position: 'absolute', fontSize: 15, fontWeight: 700, color: t.primary }}>88%</div>
+          <nav style={{ padding: '14px 12px', flex: 1, overflowY: 'auto' }}>
+            {renderNavLinks(() => setIsMobileDrawerOpen(false))}
+          </nav>
+          <div style={{ padding: '0 12px 20px' }}>
+            <div style={{ ...glassCard, padding: '14px', textAlign: 'center' }}>
+              <div style={{ fontSize: 11, color: t.textMuted, marginBottom: 8 }}>Task Score</div>
+              <div style={{ position: 'relative', display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}>
+                <CircularProgress value={focusScore} size={64} isDark={isDark} />
+                <div style={{ position: 'absolute', fontSize: 15, fontWeight: 700, color: t.primary }}>{focusScore}%</div>
+              </div>
             </div>
-            <div style={{ marginTop: 8, fontSize: 11, color: t.textMuted }}>Keep it up 🔥</div>
           </div>
-        </div>
-      </aside>
+        </aside>
+      )}
 
-      {/* Main */}
-      <div style={{ marginLeft: 220, flex: 1, display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
-        {/* Top Bar */}
+      {/* Desktop/Tablet Sidebar */}
+      {!isMobile && (
+        <aside style={sidebarStyle}>
+          {/* Logo */}
+          <div style={{ padding: isSidebarCollapsed ? '20px 0' : '22px 20px 18px', borderBottom: `1px solid ${t.borderSubtle}`, display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+            {isSidebarCollapsed ? (
+              <div style={{ width: 24, height: 24, borderRadius: 6, background: 'linear-gradient(135deg, #8B5CF6, #6366F1)', boxShadow: '0 0 10px rgba(139,92,246,0.6)' }} />
+            ) : (
+              <>
+                <AvoraLogo size="default" />
+                <div style={{ marginTop: 4, fontSize: 10, color: t.textDim, letterSpacing: '0.06em' }}>
+                  Productivity Mode <span style={{ color: t.primary }}>PRO</span>
+                </div>
+              </>
+            )}
+          </div>
+
+          {/* Nav Links */}
+          <nav style={{ padding: '14px 12px', flex: 1, overflowY: 'auto' }}>
+            {renderNavLinks()}
+          </nav>
+
+          {/* Collapse sidebar button */}
+          {!isTablet && (
+            <button
+              onClick={() => setIsSidebarCollapsed(!isSidebarCollapsed)}
+              style={{
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                margin: '10px 12px', padding: '10px', borderRadius: 10,
+                border: 'none', background: t.inputBg, color: t.textMuted, cursor: 'pointer',
+                transition: 'all 0.2s'
+              }}
+            >
+              {isSidebarCollapsed ? <PanelLeft size={16} /> : <PanelLeftClose size={16} />}
+            </button>
+          )}
+
+          {/* Focus Score Widget */}
+          {!isSidebarCollapsed && (
+            <div style={{ padding: '0 12px 20px' }}>
+              <div style={{ ...glassCard, padding: '14px', textAlign: 'center' }}>
+                <div style={{ fontSize: 11, color: t.textMuted, marginBottom: 8, letterSpacing: '0.04em' }}>Task Score</div>
+                <div style={{ position: 'relative', display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}>
+                  <CircularProgress value={focusScore} size={64} isDark={isDark} />
+                  <div style={{ position: 'absolute', fontSize: 15, fontWeight: 700, color: t.primary }}>{focusScore}%</div>
+                </div>
+                <div style={{ marginTop: 8, fontSize: 11, color: t.textMuted }}>Keep it up 🔥</div>
+              </div>
+            </div>
+          )}
+        </aside>
+      )}
+
+      {/* Main Container */}
+      <div style={{
+        marginLeft: activeSidebarWidth,
+        flex: 1, display: 'flex', flexDirection: 'column', minHeight: '100vh',
+        transition: 'margin-left 0.3s ease',
+        overflowX: 'hidden'
+      }}>
+        {/* Top Header */}
         <header style={{
           height: 64,
           background: isDark ? 'rgba(5, 8, 22, 0.9)' : 'rgba(255,255,255,0.95)',
@@ -161,31 +316,45 @@ export function Layout() {
           borderBottom: `1px solid ${t.border}`,
           display: 'flex',
           alignItems: 'center',
-          padding: '0 24px',
-          gap: 16,
+          padding: isMobile ? '0 16px' : '0 24px',
+          gap: 12,
           position: 'sticky',
           top: 0,
           zIndex: 30,
           boxShadow: isDark ? '0 4px 20px rgba(0,0,0,0.3)' : '0 2px 12px rgba(0,0,0,0.05)',
         }}>
-          <div style={{ flex: 1 }}>
-            <div style={{ fontSize: 16, fontWeight: 600, color: t.text, lineHeight: 1.2 }}>{pageInfo.title}</div>
-            <div style={{ fontSize: 12, color: t.textMuted }}>{pageInfo.sub}</div>
+          {/* Mobile hamburger menu toggle */}
+          {isMobile && (
+            <button
+              onClick={() => setIsMobileDrawerOpen(true)}
+              style={{ background: 'none', border: 'none', color: t.text, cursor: 'pointer', display: 'flex', marginRight: 4 }}
+            >
+              <Menu size={20} />
+            </button>
+          )}
+
+          <div style={{ flex: 1, minWidth: 0 }}>
+            <div style={{ fontSize: isMobile ? 14 : 16, fontWeight: 600, color: t.text, lineHeight: 1.2, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{pageInfo.title}</div>
+            {!isMobile && <div style={{ fontSize: 12, color: t.textMuted }}>{pageInfo.sub}</div>}
           </div>
 
-          {/* Search */}
-          <div style={{
-            display: 'flex', alignItems: 'center', gap: 8,
-            background: t.inputBg, border: `1px solid ${t.border}`,
-            borderRadius: 10, padding: '7px 14px', width: 220,
-            backdropFilter: 'blur(10px)',
-          }}>
-            <Search size={14} color={t.textDim} />
-            <input
-              placeholder="Search tasks, projects..."
-              style={{ background: 'transparent', border: 'none', outline: 'none', fontSize: 13, color: t.text, width: '100%' }}
-            />
-          </div>
+          {/* Search - Shrink / Hide on Mobile header to fit buttons */}
+          {!isMobile && (
+            <div style={{
+              display: 'flex', alignItems: 'center', gap: 8,
+              background: t.inputBg, border: `1px solid ${t.border}`,
+              borderRadius: 10, padding: '7px 14px', width: 220,
+              backdropFilter: 'blur(10px)',
+            }}>
+              <Search size={14} color={t.textDim} />
+              <input
+                value={searchQuery}
+                onChange={handleSearchChange}
+                placeholder="Search tasks..."
+                style={{ background: 'transparent', border: 'none', outline: 'none', fontSize: 13, color: t.text, width: '100%' }}
+              />
+            </div>
+          )}
 
           {/* Actions */}
           <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
@@ -204,32 +373,53 @@ export function Layout() {
               <Bell size={15} />
               <span style={{ position: 'absolute', top: 5, right: 6, width: 6, height: 6, borderRadius: '50%', background: '#EF4444' }} />
             </button>
-            <div style={{ width: 32, height: 32, borderRadius: '50%', background: 'linear-gradient(135deg, #8B5CF6, #A855F7)', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', boxShadow: '0 0 12px rgba(139,92,246,0.4)' }}>
+            <div style={{ width: 32, height: 32, borderRadius: '50%', background: 'linear-gradient(135deg, #8B5CF6, #A855F7)', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', boxShadow: '0 0 12px rgba(139,92,246,0.4)', flexShrink: 0 }}>
               <User size={15} color="white" />
             </div>
-            <button
-              onClick={() => navigate('/app/tasks')}
-              style={{
-                display: 'flex', alignItems: 'center', gap: 6,
-                background: 'linear-gradient(135deg, #8B5CF6, #6366F1)',
-                border: 'none', borderRadius: 9, padding: '7px 14px',
-                color: 'white', cursor: 'pointer', fontSize: 13, fontWeight: 600,
-                boxShadow: '0 4px 14px rgba(139,92,246,0.4)',
-                transition: 'all 0.2s',
-                whiteSpace: 'nowrap',
-              }}
-            >
-              <Plus size={14} />
-              Add Task
-            </button>
+            
+            {/* Show Add Task in header for Desktop/Tablet */}
+            {!isMobile && (
+              <button
+                onClick={() => navigate('/app/tasks?add=true')}
+                style={{
+                  display: 'flex', alignItems: 'center', gap: 6,
+                  background: 'linear-gradient(135deg, #8B5CF6, #6366F1)',
+                  border: 'none', borderRadius: 9, padding: '7px 14px',
+                  color: 'white', cursor: 'pointer', fontSize: 13, fontWeight: 600,
+                  boxShadow: '0 4px 14px rgba(139,92,246,0.4)',
+                  transition: 'all 0.2s',
+                  whiteSpace: 'nowrap',
+                }}
+              >
+                <Plus size={14} />
+                Add Task
+              </button>
+            )}
           </div>
         </header>
 
         {/* Page Content */}
-        <main style={{ flex: 1, padding: '24px', overflowY: 'auto' }}>
+        <main style={{ flex: 1, padding: isMobile ? '16px' : '24px', overflowY: 'auto' }}>
           <Outlet />
         </main>
       </div>
+
+      {/* Floating Action Button (FAB) for Mobile Add Task */}
+      {isMobile && (
+        <button
+          onClick={() => navigate('/app/tasks?add=true')}
+          style={{
+            position: 'fixed', bottom: 20, right: 20,
+            width: 56, height: 56, borderRadius: '50%',
+            background: 'linear-gradient(135deg, #8B5CF6, #A855F7)',
+            color: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center',
+            boxShadow: '0 4px 20px rgba(139,92,246,0.6)', border: 'none', cursor: 'pointer',
+            zIndex: 48, transition: 'all 0.2s',
+          }}
+        >
+          <PlusCircle size={28} />
+        </button>
+      )}
     </div>
   );
 }
