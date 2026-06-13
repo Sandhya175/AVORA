@@ -4,10 +4,11 @@ import { motion, AnimatePresence } from 'motion/react';
 import {
   LayoutDashboard, CheckSquare, Calendar, BarChart2, Brain,
   MessageSquare, Settings, Search, Bell, Sun, Moon, Plus,
-  ChevronRight, User, Menu, X, PanelLeftClose, PanelLeft, PlusCircle
+  Menu, X, PanelLeftClose, PanelLeft, PlusCircle, CheckCheck, Trash2
 } from 'lucide-react';
 import { useTheme, getTheme } from './ThemeContext';
 import { AvoraLogo } from './AvoraLogo';
+import { useTaskContext } from '../context/TaskContext';
 
 const navItems = [
   { icon: LayoutDashboard, label: 'Dashboard', path: '/app' },
@@ -59,11 +60,33 @@ const avatarGradients = {
   pink: 'linear-gradient(135deg, #EC4899, #F43F5E)'
 };
 
+// ─── Relative time helper ─────────────────────────────────────────────────────
+function relativeTime(ts: number): string {
+  const diff = Date.now() - ts;
+  const min = Math.floor(diff / 60000);
+  if (min < 1) return 'just now';
+  if (min < 60) return `${min}m ago`;
+  const hr = Math.floor(min / 60);
+  if (hr < 24) return `${hr}h ago`;
+  return `${Math.floor(hr / 24)}d ago`;
+}
+
+const notifTypeEmoji: Record<string, string> = {
+  created: '✅',
+  completed: '🎉',
+  deleted: '🗑',
+  due_tomorrow: '⚠️',
+  overdue: '🚨',
+};
+
+// ─────────────────────────────────────────────────────────────────────────────
+
 export function Layout() {
   const { theme, setTheme, isDark } = useTheme();
   const t = getTheme(isDark);
   const location = useLocation();
   const navigate = useNavigate();
+  const { tasks, notifications, unreadCount, markNotifRead, markAllRead, deleteNotif, clearAllNotifs } = useTaskContext();
   
   // Custom screen width detector
   const [windowWidth, setWindowWidth] = useState(typeof window !== 'undefined' ? window.innerWidth : 1200);
@@ -71,6 +94,9 @@ export function Layout() {
   const [isMobileDrawerOpen, setIsMobileDrawerOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [focusScore, setFocusScore] = useState(88);
+
+  // Notification panel state
+  const [isNotifOpen, setIsNotifOpen] = useState(false);
 
   // Profile Drawer State
   const [isProfileOpen, setIsProfileOpen] = useState(false);
@@ -80,14 +106,8 @@ export function Layout() {
   const [profileStats, setProfileStats] = useState({ total: 0, completed: 0, focusTime: '0.0h', completionRate: 0 });
 
   const loadProfileStats = () => {
-    const savedTasks = localStorage.getItem('avora_tasks');
-    let totalTasksCount = 0;
-    let completedTasksCount = 0;
-    if (savedTasks) {
-      const parsed = JSON.parse(savedTasks);
-      totalTasksCount = parsed.length;
-      completedTasksCount = parsed.filter((task: any) => task.done).length;
-    }
+    const totalTasksCount = tasks.length;
+    const completedTasksCount = tasks.filter((task) => task.done).length;
 
     const savedFocusSeconds = localStorage.getItem('avora_focus_seconds');
     let focusHrs = '0.0h';
@@ -111,7 +131,7 @@ export function Layout() {
     if (isProfileOpen) {
       loadProfileStats();
     }
-  }, [isProfileOpen]);
+  }, [isProfileOpen, tasks]);
 
   const handleProfileNameChange = (val: string) => {
     setProfileName(val);
@@ -139,28 +159,13 @@ export function Layout() {
     setSearchQuery(q);
   }, [location.search]);
 
-  // Compute focus score from localstorage tasks
+  // Compute focus score from context tasks
   useEffect(() => {
-    const updateStats = () => {
-      const savedTasks = localStorage.getItem('avora_tasks');
-      if (savedTasks) {
-        const parsed = JSON.parse(savedTasks);
-        if (parsed.length > 0) {
-          const done = parsed.filter((task: any) => task.done).length;
-          const score = Math.round((done / parsed.length) * 100);
-          setFocusScore(score || 0);
-        }
-      }
-    };
-    updateStats();
-    window.addEventListener('storage', updateStats);
-    // Custom event to update stats locally
-    window.addEventListener('tasks_updated', updateStats);
-    return () => {
-      window.removeEventListener('storage', updateStats);
-      window.removeEventListener('tasks_updated', updateStats);
-    };
-  }, []);
+    if (tasks.length > 0) {
+      const done = tasks.filter((task) => task.done).length;
+      setFocusScore(Math.round((done / tasks.length) * 100));
+    }
+  }, [tasks]);
 
   const isMobile = windowWidth < 768;
   const isTablet = windowWidth >= 768 && windowWidth < 1024;
@@ -435,9 +440,26 @@ export function Layout() {
             >
               {isDark ? <Sun size={15} /> : <Moon size={15} />}
             </button>
-            <button style={{ background: t.inputBg, border: `1px solid ${t.border}`, borderRadius: 8, padding: '7px 9px', cursor: 'pointer', color: t.textMuted, display: 'flex', alignItems: 'center', position: 'relative' }}>
+            <button
+              onClick={() => setIsNotifOpen(true)}
+              style={{ background: t.inputBg, border: `1px solid ${t.border}`, borderRadius: 8, padding: '7px 9px', cursor: 'pointer', color: t.textMuted, display: 'flex', alignItems: 'center', position: 'relative', transition: 'all 0.2s' }}
+              title="Notifications"
+            >
               <Bell size={15} />
-              <span style={{ position: 'absolute', top: 5, right: 6, width: 6, height: 6, borderRadius: '50%', background: '#EF4444' }} />
+              {unreadCount > 0 && (
+                <span style={{
+                  position: 'absolute', top: -5, right: -5,
+                  minWidth: 16, height: 16, borderRadius: 8,
+                  background: '#EF4444', color: 'white',
+                  fontSize: 9, fontWeight: 700,
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  padding: '0 3px', lineHeight: 1,
+                  border: `2px solid ${t.bg}`,
+                  boxShadow: '0 0 6px rgba(239,68,68,0.5)',
+                }}>
+                  {unreadCount > 9 ? '9+' : unreadCount}
+                </span>
+              )}
             </button>
             <div
               onClick={() => setIsProfileOpen(true)}
@@ -499,6 +521,129 @@ export function Layout() {
           <PlusCircle size={28} />
         </button>
       )}
+      {/* ─── Notification Center Panel ─────────────────────────────────── */}
+      <AnimatePresence>
+        {isNotifOpen && (
+          <>
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setIsNotifOpen(false)}
+              style={{
+                position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.45)', zIndex: 100,
+                backdropFilter: 'blur(4px)', WebkitBackdropFilter: 'blur(4px)'
+              }}
+            />
+            <motion.div
+              initial={{ x: '100%' }}
+              animate={{ x: 0 }}
+              exit={{ x: '100%' }}
+              transition={{ type: 'spring', damping: 25, stiffness: 200 }}
+              style={{
+                position: 'fixed', right: 0, top: 0, bottom: 0,
+                width: isMobile ? '100%' : 380,
+                background: t.cardBg,
+                backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)',
+                borderLeft: `1px solid ${t.border}`,
+                boxShadow: t.shadow,
+                zIndex: 101,
+                display: 'flex', flexDirection: 'column',
+                color: t.text,
+              }}
+            >
+              {/* Header */}
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '20px 24px 16px', borderBottom: `1px solid ${t.borderSubtle}` }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                  <Bell size={17} color={t.primary} />
+                  <h3 style={{ fontSize: 17, fontWeight: 700 }}>Notifications</h3>
+                  {unreadCount > 0 && (
+                    <span style={{ fontSize: 11, fontWeight: 700, background: '#EF4444', color: 'white', borderRadius: 10, padding: '1px 7px' }}>{unreadCount}</span>
+                  )}
+                </div>
+                <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
+                  {notifications.length > 0 && (
+                    <>
+                      <button
+                        onClick={markAllRead}
+                        title="Mark all read"
+                        style={{ background: 'none', border: 'none', cursor: 'pointer', color: t.textMuted, display: 'flex', alignItems: 'center', gap: 4, fontSize: 11, padding: '4px 8px', borderRadius: 6 }}
+                      >
+                        <CheckCheck size={13} /> All read
+                      </button>
+                      <button
+                        onClick={clearAllNotifs}
+                        title="Clear all"
+                        style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#EF4444', display: 'flex', alignItems: 'center', gap: 4, fontSize: 11, padding: '4px 8px', borderRadius: 6 }}
+                      >
+                        <Trash2 size={13} /> Clear
+                      </button>
+                    </>
+                  )}
+                  <button
+                    onClick={() => setIsNotifOpen(false)}
+                    style={{ background: 'none', border: 'none', color: t.textMuted, cursor: 'pointer', display: 'flex' }}
+                  >
+                    <X size={20} />
+                  </button>
+                </div>
+              </div>
+
+              {/* Notification list */}
+              <div style={{ flex: 1, overflowY: 'auto', padding: '8px 0' }}>
+                {notifications.length === 0 ? (
+                  <div style={{ textAlign: 'center', padding: '60px 24px', color: t.textDim }}>
+                    <Bell size={32} style={{ margin: '0 auto 16px', opacity: 0.3 }} />
+                    <div style={{ fontSize: 14, fontWeight: 600 }}>No notifications yet</div>
+                    <div style={{ fontSize: 12, marginTop: 6 }}>Actions like creating, completing, or deadline alerts appear here.</div>
+                  </div>
+                ) : (
+                  notifications.map(notif => (
+                    <motion.div
+                      key={notif.id}
+                      initial={{ opacity: 0, x: 20 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      exit={{ opacity: 0, x: 20 }}
+                      onClick={() => markNotifRead(notif.id)}
+                      style={{
+                        display: 'flex', alignItems: 'flex-start', gap: 12,
+                        padding: '12px 20px',
+                        background: notif.read ? 'transparent' : (isDark ? 'rgba(139,92,246,0.08)' : 'rgba(139,92,246,0.05)'),
+                        borderBottom: `1px solid ${t.borderSubtle}`,
+                        cursor: 'pointer',
+                        transition: 'background 0.2s',
+                      }}
+                    >
+                      <div style={{ fontSize: 18, flexShrink: 0, lineHeight: 1.3 }}>
+                        {notifTypeEmoji[notif.type] || '🔔'}
+                      </div>
+                      <div style={{ flex: 1, minWidth: 0 }}>
+                        <div style={{ fontSize: 13, color: notif.read ? t.textMuted : t.text, fontWeight: notif.read ? 400 : 600, lineHeight: 1.4 }}>
+                          {notif.message}
+                        </div>
+                        <div style={{ fontSize: 11, color: t.textDim, marginTop: 4 }}>
+                          {relativeTime(notif.timestamp)}
+                        </div>
+                      </div>
+                      {!notif.read && (
+                        <div style={{ width: 7, height: 7, borderRadius: '50%', background: '#8B5CF6', flexShrink: 0, marginTop: 6, boxShadow: '0 0 6px rgba(139,92,246,0.6)' }} />
+                      )}
+                      <button
+                        onClick={e => { e.stopPropagation(); deleteNotif(notif.id); }}
+                        style={{ background: 'none', border: 'none', cursor: 'pointer', color: t.textDim, display: 'flex', flexShrink: 0, padding: 2, borderRadius: 4, transition: 'color 0.2s' }}
+                        title="Remove"
+                      >
+                        <X size={12} />
+                      </button>
+                    </motion.div>
+                  ))
+                )}
+              </div>
+            </motion.div>
+          </>
+        )}
+      </AnimatePresence>
+
       {/* Profile Drawer Overlay & Content */}
       <AnimatePresence>
         {isProfileOpen && (

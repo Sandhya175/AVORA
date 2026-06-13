@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useNavigate } from 'react-router';
 import { motion } from 'motion/react';
 import {
@@ -11,7 +11,7 @@ import {
 } from 'recharts';
 import { useTheme, getTheme } from './ThemeContext';
 import { useIsMobile, useIsTablet } from './ui/use-mobile';
-import { Task } from './TaskManagement';
+import { useTaskContext } from '../context/TaskContext';
 
 interface StatCardProps {
   label: string;
@@ -56,12 +56,6 @@ function StatCard({ label, value, delta, positive, icon, accent, t }: StatCardPr
   );
 }
 
-const defaultTasks: Task[] = [
-  { id: '1', title: 'Design AVORA Brand Guidelines', description: '', category: 'Work', priority: 'high', due: '2026-06-15', done: false, status: 'in_progress', progress: 65, starred: true },
-  { id: '2', title: 'Integrate LocalStorage Sync', description: '', category: 'Work', priority: 'high', due: '2026-06-13', done: true, status: 'completed', progress: 100, starred: false },
-  { id: '3', title: 'Implement Mobile Nav Drawer', description: '', category: 'Study', priority: 'medium', due: '2026-06-14', done: false, status: 'pending', progress: 0, starred: false },
-];
-
 const priorityConfig: Record<string, { color: string; bg: string }> = {
   high: { color: '#EF4444', bg: 'rgba(239,68,68,0.12)' },
   urgent: { color: '#EF4444', bg: 'rgba(239,68,68,0.12)' },
@@ -79,60 +73,14 @@ export function Dashboard() {
   const isMobile = useIsMobile();
   const isTablet = useIsTablet();
   const navigate = useNavigate();
+  const { tasks, toggleDone } = useTaskContext();
 
-  // Load state from local storage
-  const [tasks, setTasks] = useState<Task[]>([]);
-  const [focusTime, setFocusTime] = useState('0.0h');
+  const [focusTime, setFocusTime] = useState(() => {
+    const savedFocusSeconds = localStorage.getItem('avora_focus_seconds');
+    if (savedFocusSeconds) return (Number(savedFocusSeconds) / 3600).toFixed(1) + 'h';
+    return '2.4h';
+  });
   const [taskFilter, setTaskFilter] = useState<'all' | 'pending' | 'done'>('all');
-
-  useEffect(() => {
-    const loadData = () => {
-      const savedTasks = localStorage.getItem('avora_tasks');
-      if (savedTasks) {
-        setTasks(JSON.parse(savedTasks));
-      } else {
-        setTasks(defaultTasks);
-      }
-
-      const savedFocusSeconds = localStorage.getItem('avora_focus_seconds');
-      if (savedFocusSeconds) {
-        const hours = (Number(savedFocusSeconds) / 3600).toFixed(1);
-        setFocusTime(`${hours}h`);
-      } else {
-        setFocusTime('2.4h'); // default fallback
-      }
-    };
-
-    loadData();
-    window.addEventListener('storage', loadData);
-    window.addEventListener('tasks_updated', loadData);
-    return () => {
-      window.removeEventListener('storage', loadData);
-      window.removeEventListener('tasks_updated', loadData);
-    };
-  }, []);
-
-  const saveTasks = (newTasks: Task[]) => {
-    setTasks(newTasks);
-    localStorage.setItem('avora_tasks', JSON.stringify(newTasks));
-    window.dispatchEvent(new Event('tasks_updated'));
-  };
-
-  const toggleTask = (id: string) => {
-    const updated = tasks.map(task => {
-      if (task.id === id) {
-        const nextDone = !task.done;
-        return {
-          ...task,
-          done: nextDone,
-          status: nextDone ? 'completed' as const : 'pending' as const,
-          progress: nextDone ? 100 : 0
-        };
-      }
-      return task;
-    });
-    saveTasks(updated);
-  };
 
   // Filter tasks for dashboard (shows maximum 5 tasks)
   const dashboardTasks = tasks.filter(task => {
@@ -276,7 +224,7 @@ export function Dashboard() {
                       }}
                     >
                       <button
-                        onClick={() => toggleTask(task.id)}
+                        onClick={() => toggleDone(task.id)}
                         style={{
                           width: 18, height: 18, borderRadius: 5, cursor: 'pointer',
                           border: done ? 'none' : `2px solid ${t.border}`,

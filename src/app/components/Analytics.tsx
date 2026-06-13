@@ -1,6 +1,6 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { motion } from 'motion/react';
-import { TrendingUp, TrendingDown, Award, Flame, Target, Zap, AlertCircle } from 'lucide-react';
+import { TrendingUp, TrendingDown, Award, Flame, Target, Zap } from 'lucide-react';
 import {
   AreaChart, Area, BarChart, Bar, LineChart, Line,
   XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
@@ -8,7 +8,7 @@ import {
 } from 'recharts';
 import { useTheme, getTheme } from './ThemeContext';
 import { useIsMobile, useIsTablet } from './ui/use-mobile';
-import { Task } from './TaskManagement';
+import { useTaskContext } from '../context/TaskContext';
 
 interface MetricCardProps {
   label: string;
@@ -61,31 +61,13 @@ export function Analytics() {
   const isMobile = useIsMobile();
   const isTablet = useIsTablet();
   const [range, setRange] = useState<'week' | 'month' | 'quarter'>('week');
-  const [tasks, setTasks] = useState<Task[]>([]);
-  const [focusHours, setFocusHours] = useState(2.4);
+  const { tasks } = useTaskContext();
 
-  useEffect(() => {
-    const loadData = () => {
-      const savedTasks = localStorage.getItem('avora_tasks');
-      if (savedTasks) {
-        setTasks(JSON.parse(savedTasks));
-      }
-      
-      const savedSeconds = localStorage.getItem('avora_focus_seconds');
-      if (savedSeconds) {
-        setFocusHours(Number((Number(savedSeconds) / 3600).toFixed(1)));
-      } else {
-        setFocusHours(2.4);
-      }
-    };
-    loadData();
-    window.addEventListener('storage', loadData);
-    window.addEventListener('tasks_updated', loadData);
-    return () => {
-      window.removeEventListener('storage', loadData);
-      window.removeEventListener('tasks_updated', loadData);
-    };
-  }, []);
+  const focusHours = (() => {
+    const savedSeconds = localStorage.getItem('avora_focus_seconds');
+    if (savedSeconds) return Number((Number(savedSeconds) / 3600).toFixed(1));
+    return 2.4;
+  })();
 
   // Calculations
   const completed = tasks.filter(t => t.done).length;
