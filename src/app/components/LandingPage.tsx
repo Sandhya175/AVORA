@@ -3,7 +3,8 @@ import { motion, AnimatePresence } from 'motion/react';
 import { useState, useEffect } from 'react';
 import {
   ArrowRight, CheckCircle2, Brain, BarChart2, Star, Shield, Target, Calendar,
-  Moon, Sun, CheckSquare, Menu, X, ArrowUpRight, Lock, Monitor, Laptop
+  Moon, Sun, CheckSquare, Menu, X, ArrowUpRight, Lock, Monitor, Laptop,
+  Bell, Sparkles, Home, Settings, MoreHorizontal
 } from 'lucide-react';
 import { useTheme, getTheme } from './ThemeContext';
 import { AvoraLogo } from './AvoraLogo';
@@ -66,145 +67,307 @@ function DashboardMockup({ isDark }: { isDark: boolean }) {
   const t = getTheme(isDark);
   const isMobile = useIsMobile();
   const cardStyle: React.CSSProperties = {
-    background: t.glass,
+    background: 'rgba(15, 23, 42, 0.45)',
     backdropFilter: 'blur(24px)',
     WebkitBackdropFilter: 'blur(24px)',
-    border: `1px solid ${t.border}`,
-    borderRadius: 18,
-    boxShadow: t.shadow,
+    border: `1px solid rgba(255, 255, 255, 0.08)`,
+    borderRadius: 20,
+    boxShadow: '0 30px 60px -15px rgba(0,0,0,0.8), 0 0 50px -10px rgba(139,92,246,0.15)',
+    transition: 'all 0.5s ease',
   };
 
+  const floatingWidgetStyle: React.CSSProperties = {
+    background: 'rgba(15, 23, 42, 0.55)',
+    backdropFilter: 'blur(20px)',
+    WebkitBackdropFilter: 'blur(20px)',
+    border: `1px solid rgba(255, 255, 255, 0.1)`,
+    borderRadius: 16,
+    boxShadow: '0 20px 40px -10px rgba(0,0,0,0.7), 0 0 30px -5px rgba(139,92,246,0.2)',
+    zIndex: 10,
+    pointerEvents: 'none',
+  };
+
+  const tasks = [
+    { title: 'Design landing page', category: 'Design', color: '#8B5CF6', done: true },
+    { title: 'Build homepage UI', category: 'Development', color: '#6366F1', done: true },
+    { title: 'Fix responsive issues', category: 'Development', color: '#6366F1', done: false },
+    { title: 'Prepare for presentation', category: 'Work', color: '#F59E0B', done: false },
+    { title: 'Read 20 pages', category: 'Personal', color: '#10B981', done: false },
+  ];
+
   return (
-    <div style={{ position: 'relative', width: '100%', maxWidth: 440, margin: '0 auto' }}>
-      {/* Main dashboard card */}
+    <div style={{ 
+      position: 'relative', 
+      width: '100%', 
+      maxWidth: 580, 
+      margin: '0 auto', 
+      perspective: 1200,
+      padding: isMobile ? '20px 0' : '40px 0' 
+    }}>
+      {/* Glow Effects Behind Mockup */}
+      <div style={{
+        position: 'absolute',
+        top: '20%',
+        left: '20%',
+        width: 300,
+        height: 300,
+        borderRadius: '50%',
+        background: 'radial-gradient(circle, rgba(139,92,246,0.3) 0%, rgba(0,0,0,0) 70%)',
+        filter: 'blur(40px)',
+        zIndex: 0,
+        pointerEvents: 'none',
+      }} />
+      <div style={{
+        position: 'absolute',
+        bottom: '10%',
+        right: '10%',
+        width: 250,
+        height: 250,
+        borderRadius: '50%',
+        background: 'radial-gradient(circle, rgba(168,85,247,0.25) 0%, rgba(0,0,0,0) 70%)',
+        filter: 'blur(30px)',
+        zIndex: 0,
+        pointerEvents: 'none',
+      }} />
+
+      {/* Main Dashboard Card */}
       <motion.div
-        animate={{ y: [0, -8, 0] }}
-        transition={{ duration: 4, repeat: Infinity, ease: 'easeInOut' }}
         style={{
           ...cardStyle,
-          padding: isMobile ? 16 : 20,
-          boxShadow: `${t.shadow}, 0 0 60px rgba(139,92,246,0.2)`,
+          display: 'flex',
+          transformStyle: 'preserve-3d',
+          transform: isMobile 
+            ? 'none' 
+            : 'rotateY(-12deg) rotateX(8deg) rotateZ(-2deg)',
+          zIndex: 2,
         }}
+        whileHover={isMobile ? {} : { 
+          transform: 'rotateY(-8deg) rotateX(5deg) rotateZ(-1deg)',
+          boxShadow: '0 40px 80px -20px rgba(0,0,0,0.9), 0 0 60px rgba(139,92,246,0.25)' 
+        }}
+        transition={{ type: 'spring', stiffness: 100, damping: 20 }}
       >
-        {/* Header */}
-        <div style={{ marginBottom: 14 }}>
-          <div style={{ fontSize: 13, fontWeight: 600, color: t.text }}>Good Morning, Sandhya! 🌅</div>
-          <div style={{ fontSize: 11, color: t.textMuted, marginTop: 2 }}>Let's make today productive</div>
-          <div style={{ display: 'flex', gap: 8, marginTop: 12 }}>
-            {[
-              { label: 'Tasks', value: '4' },
-              { label: 'Done', value: '1' },
-              { label: 'Pending', value: '3' },
-              { label: 'Focus', value: '2.4h' },
-            ].map(stat => (
-              <div key={stat.label} style={{ flex: 1, background: isDark ? 'rgba(139,92,246,0.08)' : 'rgba(139,92,246,0.06)', borderRadius: 8, padding: '6px 4px', textAlign: 'center' }}>
-                <div style={{ fontSize: 13, fontWeight: 700, color: t.primary }}>{stat.value}</div>
-                <div style={{ fontSize: 9, color: t.textDim, marginTop: 1 }}>{stat.label}</div>
-              </div>
-            ))}
+        {/* Mockup Sidebar */}
+        <div style={{
+          width: 54,
+          borderRight: '1px solid rgba(255, 255, 255, 0.08)',
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          padding: '20px 0',
+          gap: 22,
+          background: 'rgba(5, 8, 22, 0.3)',
+          borderTopLeftRadius: 20,
+          borderBottomLeftRadius: 20,
+        }}>
+          {/* Logo icon */}
+          <div style={{
+            width: 26,
+            height: 26,
+            borderRadius: 7,
+            background: 'linear-gradient(135deg, #8B5CF6, #6366F1)',
+            boxShadow: '0 0 10px rgba(139, 92, 246, 0.5)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            color: 'white',
+            fontWeight: 800,
+            fontSize: 12,
+          }}>
+            ✓
           </div>
+          <div style={{ width: 28, height: 28, borderRadius: 8, background: 'rgba(139,92,246,0.15)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#8B5CF6' }}>
+            <Home size={15} />
+          </div>
+          <div style={{ color: 'rgba(255,255,255,0.4)', cursor: 'default' }}><CheckSquare size={15} /></div>
+          <div style={{ color: 'rgba(255,255,255,0.4)', cursor: 'default' }}><Calendar size={15} /></div>
+          <div style={{ color: 'rgba(255,255,255,0.4)', cursor: 'default' }}><BarChart2 size={15} /></div>
+          <div style={{ color: 'rgba(255,255,255,0.4)', cursor: 'default', marginTop: 'auto' }}><Settings size={15} /></div>
         </div>
 
-        {/* Tasks + Goals */}
-        <div style={{ display: 'flex', gap: 12, flexDirection: isMobile ? 'column' : 'row' }}>
-          <div style={{ flex: 1 }}>
-            <div style={{ fontSize: 11, fontWeight: 600, color: t.textMuted, marginBottom: 8 }}>Today's Tasks</div>
-            {miniTasks.map((task, i) => (
-              <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '5px 0', borderBottom: `1px solid ${t.borderSubtle}` }}>
-                <div style={{ width: 14, height: 14, borderRadius: 4, border: task.done ? 'none' : `1.5px solid ${t.border}`, background: task.done ? 'linear-gradient(135deg,#8B5CF6,#6366F1)' : 'transparent', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                  {task.done && <span style={{ color: 'white', fontSize: 8, fontWeight: 700 }}>✓</span>}
-                </div>
-                <div style={{ flex: 1, fontSize: 10, color: task.done ? t.textDim : t.text, textDecoration: task.done ? 'line-through' : 'none', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{task.label}</div>
-                <span style={{ fontSize: 8, padding: '2px 5px', borderRadius: 4, background: `${catColors[task.cat] || '#8B5CF6'}22`, color: catColors[task.cat] || '#8B5CF6', fontWeight: 600 }}>{task.cat}</span>
+        {/* Mockup Main Panel */}
+        <div style={{ flex: 1, padding: 22, display: 'flex', flexDirection: 'column', gap: 18 }}>
+          {/* Mockup Top Header */}
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+            <div>
+              <div style={{ fontSize: 10, color: 'rgba(255,255,255,0.4)', letterSpacing: '0.02em' }}>Good Morning,</div>
+              <div style={{ fontSize: 14, fontWeight: 700, color: 'white', marginTop: 1, display: 'flex', alignItems: 'center', gap: 4 }}>
+                Let's make today productive <span style={{ fontSize: 13 }}>🚀</span>
+              </div>
+            </div>
+            <div style={{ color: 'rgba(255,255,255,0.5)', background: 'rgba(255,255,255,0.05)', borderRadius: 8, padding: 6 }}>
+              <Bell size={13} />
+            </div>
+          </div>
+
+          {/* Mockup Stats */}
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 8 }}>
+            {[
+              { label: 'Tasks Today', value: '8' },
+              { label: 'Completed', value: '5' },
+              { label: 'In Progress', value: '3' },
+              { label: 'Focus Time', value: '2.4h' },
+            ].map((stat, i) => (
+              <div key={i} style={{
+                background: 'rgba(255,255,255,0.03)',
+                border: '1px solid rgba(255,255,255,0.05)',
+                borderRadius: 10,
+                padding: '8px 4px',
+                textAlign: 'center'
+              }}>
+                <div style={{ fontSize: 13, fontWeight: 800, color: 'white', letterSpacing: '-0.02em' }}>{stat.value}</div>
+                <div style={{ fontSize: 8, color: 'rgba(255,255,255,0.4)', marginTop: 2, whiteSpace: 'nowrap' }}>{stat.label}</div>
               </div>
             ))}
           </div>
-          <div style={{ width: isMobile ? '100%' : 100, flexShrink: 0 }}>
-            <div style={{ fontSize: 11, fontWeight: 600, color: t.textMuted, marginBottom: 8 }}>Weekly Goal</div>
-            {[
-              { label: 'Tasks Completed', pct: 75 },
-              { label: 'Focus Time', pct: 60 },
-            ].map(g => (
-              <div key={g.label} style={{ marginBottom: 8 }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 3 }}>
-                  <span style={{ fontSize: 9, color: t.textMuted }}>{g.label}</span>
-                  <span style={{ fontSize: 9, color: t.primary, fontWeight: 600 }}>{g.pct}%</span>
+
+          {/* Today's Tasks */}
+          <div>
+            <div style={{ fontSize: 11, fontWeight: 600, color: 'rgba(255,255,255,0.4)', marginBottom: 10 }}>Today's Tasks</div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 7 }}>
+              {tasks.map((task, i) => (
+                <div key={i} style={{ 
+                  display: 'flex', 
+                  alignItems: 'center', 
+                  gap: 10, 
+                  padding: '7px 0', 
+                  borderBottom: i < tasks.length - 1 ? '1px solid rgba(255,255,255,0.04)' : 'none' 
+                }}>
+                  {/* Custom Checkbox */}
+                  <div style={{
+                    width: 15,
+                    height: 15,
+                    borderRadius: 4.5,
+                    border: task.done ? 'none' : '1.5px solid rgba(255,255,255,0.25)',
+                    background: task.done ? 'linear-gradient(135deg,#8B5CF6,#6366F1)' : 'transparent',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    flexShrink: 0
+                  }}>
+                    {task.done && <span style={{ color: 'white', fontSize: 9, fontWeight: 800 }}>✓</span>}
+                  </div>
+                  {/* Title */}
+                  <div style={{
+                    flex: 1,
+                    fontSize: 11,
+                    color: task.done ? 'rgba(255,255,255,0.4)' : 'white',
+                    textDecoration: task.done ? 'line-through' : 'none',
+                    overflow: 'hidden',
+                    textOverflow: 'ellipsis',
+                    whiteSpace: 'nowrap'
+                  }}>
+                    {task.title}
+                  </div>
+                  {/* Badge */}
+                  <span style={{
+                    fontSize: 8,
+                    padding: '2.5px 7px',
+                    borderRadius: 5,
+                    background: `${task.color}15`,
+                    color: task.color,
+                    fontWeight: 700,
+                    letterSpacing: '0.01em',
+                  }}>
+                    {task.category}
+                  </span>
+                  <div style={{ color: 'rgba(255,255,255,0.3)', display: 'flex' }}><MoreHorizontal size={13} /></div>
                 </div>
-                <div style={{ height: 4, borderRadius: 2, background: isDark ? 'rgba(255,255,255,0.07)' : 'rgba(0,0,0,0.06)' }}>
-                  <div style={{ height: '100%', borderRadius: 2, width: `${g.pct}%`, background: 'linear-gradient(90deg,#8B5CF6,#A855F7)' }} />
-                </div>
-              </div>
-            ))}
+              ))}
+            </div>
           </div>
         </div>
       </motion.div>
 
-      {/* Floating Focus Score Card - Hidden on Mobile to avoid overflow */}
+      {/* Floating Focus Score Widget (Top-Left) */}
       {!isMobile && (
-        <>
-          <motion.div
-            animate={{ y: [0, -12, 0] }}
-            transition={{ duration: 3.5, repeat: Infinity, ease: 'easeInOut', delay: 0.5 }}
-            style={{
-              ...cardStyle,
-              position: 'absolute',
-              top: -36,
-              left: -60,
-              padding: '12px 16px',
-              width: 110,
-              textAlign: 'center',
-              boxShadow: `${t.shadow}, 0 0 30px rgba(139,92,246,0.25)`,
-            }}
-          >
-            <div style={{ fontSize: 9, color: t.textMuted, marginBottom: 6 }}>Focus Score</div>
-            <div style={{ position: 'relative', display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}>
-              <svg width={52} height={52} style={{ transform: 'rotate(-90deg)' }}>
-                <circle cx={26} cy={26} r={21} fill="none" stroke={isDark ? 'rgba(255,255,255,0.07)' : 'rgba(139,92,246,0.1)'} strokeWidth={5} />
-                <circle cx={26} cy={26} r={21} fill="none" stroke="url(#fs-grad)" strokeWidth={5}
-                  strokeDasharray={2 * Math.PI * 21} strokeDashoffset={2 * Math.PI * 21 * 0.14} strokeLinecap="round" />
-                <defs>
-                  <linearGradient id="fs-grad" x1="0%" y1="0%" x2="100%" y2="0%">
-                    <stop offset="0%" stopColor="#8B5CF6" /><stop offset="100%" stopColor="#A855F7" />
-                  </linearGradient>
-                </defs>
-              </svg>
-              <div style={{ position: 'absolute', fontSize: 13, fontWeight: 700, color: t.primary }}>86%</div>
-            </div>
-            <div style={{ fontSize: 8, color: t.textDim, marginTop: 3 }}>Keep it up! 🔥</div>
-          </motion.div>
+        <motion.div
+          animate={{ y: [0, -8, 0] }}
+          transition={{ duration: 3.5, repeat: Infinity, ease: 'easeInOut', delay: 0.2 }}
+          style={{
+            ...floatingWidgetStyle,
+            position: 'absolute',
+            top: -10,
+            left: -55,
+            width: 124,
+            padding: '12px 10px',
+            textAlign: 'center',
+          }}
+        >
+          <div style={{ fontSize: 9, color: 'rgba(255,255,255,0.4)', fontWeight: 500, marginBottom: 8 }}>Focus Score</div>
+          <div style={{ position: 'relative', display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}>
+            <svg width={54} height={54} style={{ transform: 'rotate(-90deg)' }}>
+              <circle cx={27} cy={27} r={22} fill="none" stroke="rgba(255,255,255,0.05)" strokeWidth={4} />
+              <circle cx={27} cy={27} r={22} fill="none" stroke="url(#hero-fs-grad)" strokeWidth={4}
+                strokeDasharray={2 * Math.PI * 22} strokeDashoffset={2 * Math.PI * 22 * 0.14} strokeLinecap="round" />
+              <defs>
+                <linearGradient id="hero-fs-grad" x1="0%" y1="0%" x2="100%" y2="0%">
+                  <stop offset="0%" stopColor="#8B5CF6" /><stop offset="100%" stopColor="#A855F7" />
+                </linearGradient>
+              </defs>
+            </svg>
+            <div style={{ position: 'absolute', fontSize: 13, fontWeight: 800, color: 'white' }}>86%</div>
+          </div>
+          <div style={{ fontSize: 8, color: '#A855F7', fontWeight: 600, marginTop: 8 }}>Keep it up! 🔥</div>
+        </motion.div>
+      )}
 
-          {/* Floating Weekly Progress Card */}
-          <motion.div
-            animate={{ y: [0, -10, 0] }}
-            transition={{ duration: 4.5, repeat: Infinity, ease: 'easeInOut', delay: 1 }}
-            style={{
-              ...cardStyle,
-              position: 'absolute',
-              bottom: -30,
-              left: -50,
-              padding: '12px 14px',
-              width: 150,
-              boxShadow: `${t.shadow}, 0 0 24px rgba(139,92,246,0.2)`,
-            }}
-          >
-            <div style={{ fontSize: 9, color: t.textMuted, marginBottom: 8 }}>Weekly Progress</div>
-            <div style={{ display: 'flex', alignItems: 'flex-end', gap: 5, height: 36 }}>
-              {weeklyData.map((v, i) => (
-                <div key={i} style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 3 }}>
-                  <div style={{
-                    flex: 1, width: '100%', borderRadius: 3,
-                    background: i === 5 ? 'linear-gradient(180deg,#A855F7,#8B5CF6)' : (isDark ? 'rgba(139,92,246,0.25)' : 'rgba(139,92,246,0.15)'),
-                    height: `${(v / 100) * 32}px`,
-                    minHeight: 4, alignSelf: 'flex-end',
-                    boxShadow: i === 5 ? '0 0 8px rgba(168,85,247,0.5)' : 'none',
-                  }} />
-                  <span style={{ fontSize: 7, color: t.textDim }}>{weekDays[i]}</span>
-                </div>
-              ))}
-            </div>
-            <div style={{ marginTop: 6, fontSize: 9, color: '#22C55E', fontWeight: 600 }}>+23% this week</div>
-          </motion.div>
-        </>
+      {/* Floating Weekly Progress Widget (Bottom-Left) */}
+      {!isMobile && (
+        <motion.div
+          animate={{ y: [0, -10, 0] }}
+          transition={{ duration: 4, repeat: Infinity, ease: 'easeInOut', delay: 0.8 }}
+          style={{
+            ...floatingWidgetStyle,
+            position: 'absolute',
+            bottom: -15,
+            left: -40,
+            width: 140,
+            padding: '12px 14px',
+          }}
+        >
+          <div style={{ fontSize: 9, color: 'rgba(255,255,255,0.4)', fontWeight: 500, marginBottom: 8 }}>Weekly Progress</div>
+          <div style={{ display: 'flex', alignItems: 'flex-end', gap: 4, height: 38 }}>
+            {[30, 50, 40, 70, 55, 85, 60].map((v, i) => (
+              <div key={i} style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2 }}>
+                <div style={{
+                  width: '100%',
+                  borderRadius: 2,
+                  background: i === 6 
+                    ? 'linear-gradient(180deg,#A855F7,#8B5CF6)' 
+                    : 'rgba(139,92,246,0.25)',
+                  height: `${(v / 100) * 32}px`,
+                  minHeight: 2,
+                  alignSelf: 'flex-end',
+                  boxShadow: i === 6 ? '0 0 10px rgba(168,85,247,0.5)' : 'none',
+                }} />
+                <span style={{ fontSize: 7, color: 'rgba(255,255,255,0.3)', transform: 'scale(0.95)' }}>{['M','T','W','T','F','S','S'][i]}</span>
+              </div>
+            ))}
+          </div>
+        </motion.div>
+      )}
+
+      {/* Floating Goals Widget (Bottom-Right) */}
+      {!isMobile && (
+        <motion.div
+          animate={{ y: [0, -7, 0] }}
+          transition={{ duration: 4.5, repeat: Infinity, ease: 'easeInOut', delay: 1.4 }}
+          style={{
+            ...floatingWidgetStyle,
+            position: 'absolute',
+            bottom: 5,
+            right: -50,
+            width: 130,
+            padding: '12px 14px',
+          }}
+        >
+          <div style={{ fontSize: 9, color: 'rgba(255,255,255,0.4)', fontWeight: 500, marginBottom: 4 }}>Goals</div>
+          <div style={{ fontSize: 11, fontWeight: 700, color: 'white', marginBottom: 8 }}>3/5 Completed</div>
+          <div style={{ height: 4, borderRadius: 2, background: 'rgba(255,255,255,0.07)', width: '100%', overflow: 'hidden' }}>
+            <div style={{ height: '100%', width: '60%', background: 'linear-gradient(90deg, #8B5CF6, #A855F7)', borderRadius: 2 }} />
+          </div>
+        </motion.div>
       )}
     </div>
   );
@@ -414,10 +577,12 @@ export function LandingPage() {
               {/* Badge */}
               <div style={{
                 display: 'inline-flex', alignItems: 'center', gap: 8, marginBottom: 20,
-                background: isDark ? 'rgba(139,92,246,0.1)' : 'rgba(139,92,246,0.08)',
-                border: `1px solid ${t.border}`, borderRadius: 30, padding: '5px 14px',
+                background: 'rgba(15, 23, 42, 0.45)', backdropFilter: 'blur(10px)',
+                border: `1px solid rgba(255, 255, 255, 0.08)`, borderRadius: 30, padding: '5px 14px 5px 6px',
               }}>
-                <div style={{ width: 3, height: 16, borderRadius: 2, background: 'linear-gradient(180deg,#8B5CF6,#A855F7)' }} />
+                <div style={{ width: 20, height: 20, borderRadius: '50%', background: 'linear-gradient(135deg, #8B5CF6, #A855F7)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  <Sparkles size={10} color="white" />
+                </div>
                 <span style={{ fontSize: 12, color: t.textMuted }}>Plan better. Achieve more.</span>
               </div>
 
@@ -439,7 +604,7 @@ export function LandingPage() {
               </div>
 
               <p style={{ fontSize: isMobile ? 14 : 16, color: t.textMuted, lineHeight: 1.7, marginBottom: 30 }}>
-                Avora is a premium productivity platform built for professionals and students. Organize checklists, start focused sessions, and visually track your daily goals with our elegant dashboard.
+                Avora helps you organize tasks, stay focused, and achieve your goals — one step at a time.
               </p>
 
               {/* CTAs */}
@@ -451,11 +616,11 @@ export function LandingPage() {
                   style={{
                     display: 'flex', alignItems: 'center', gap: 8,
                     background: 'linear-gradient(135deg,#8B5CF6,#6366F1)', border: 'none',
-                    borderRadius: 12, padding: '13px 28px', color: 'white', cursor: 'pointer',
+                    borderRadius: 30, padding: '13px 30px', color: 'white', cursor: 'pointer',
                     fontSize: 15, fontWeight: 600, boxShadow: '0 4px 20px rgba(139,92,246,0.4)',
                   }}
                 >
-                  Launch Dashboard <ArrowRight size={16} />
+                  Get Started <ArrowRight size={16} />
                 </motion.button>
               </div>
 
@@ -725,9 +890,10 @@ export function LandingPage() {
         </motion.div>
       </section>
 
-      {/* Footer */}
       <footer style={{ borderTop: `1px solid ${t.border}`, padding: '30px 48px', display: 'flex', flexDirection: isMobile ? 'column' : 'row', justifyContent: 'space-between', alignItems: 'center', gap: 16 }}>
-        <AvoraLogo size="sm" />
+        <div style={{ cursor: 'pointer' }} onClick={() => scrollToSection('home')}>
+          <AvoraLogo size="sm" />
+        </div>
         <div style={{ fontSize: 13, color: t.textDim }}>© 2026 AVORA Inc. All rights reserved.</div>
         <div style={{ display: 'flex', gap: 20 }}>
           {['Privacy Policy', 'Terms of Service', 'Support'].map(l => (

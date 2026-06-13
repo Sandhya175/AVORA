@@ -1,5 +1,6 @@
 import { Outlet, NavLink, useNavigate, useLocation } from 'react-router';
 import { useState, useEffect } from 'react';
+import { motion, AnimatePresence } from 'motion/react';
 import {
   LayoutDashboard, CheckSquare, Calendar, BarChart2, Brain,
   MessageSquare, Settings, Search, Bell, Sun, Moon, Plus,
@@ -51,6 +52,13 @@ const CircularProgress = ({ value, size = 64, isDark }: { value: number; size?: 
   );
 };
 
+const avatarGradients = {
+  purple: 'linear-gradient(135deg, #8B5CF6, #A855F7)',
+  blue: 'linear-gradient(135deg, #3B82F6, #06B6D4)',
+  indigo: 'linear-gradient(135deg, #6366F1, #8B5CF6)',
+  pink: 'linear-gradient(135deg, #EC4899, #F43F5E)'
+};
+
 export function Layout() {
   const { theme, setTheme, isDark } = useTheme();
   const t = getTheme(isDark);
@@ -63,6 +71,60 @@ export function Layout() {
   const [isMobileDrawerOpen, setIsMobileDrawerOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [focusScore, setFocusScore] = useState(88);
+
+  // Profile Drawer State
+  const [isProfileOpen, setIsProfileOpen] = useState(false);
+  const [profileName, setProfileName] = useState(() => localStorage.getItem('avora_profile_name') || 'Sandhya');
+  const [profileEmail, setProfileEmail] = useState(() => localStorage.getItem('avora_profile_email') || 'sandhya@avora.app');
+  const [profileAvatar, setProfileAvatar] = useState(() => localStorage.getItem('avora_profile_avatar') || 'purple');
+  const [profileStats, setProfileStats] = useState({ total: 0, completed: 0, focusTime: '0.0h', completionRate: 0 });
+
+  const loadProfileStats = () => {
+    const savedTasks = localStorage.getItem('avora_tasks');
+    let totalTasksCount = 0;
+    let completedTasksCount = 0;
+    if (savedTasks) {
+      const parsed = JSON.parse(savedTasks);
+      totalTasksCount = parsed.length;
+      completedTasksCount = parsed.filter((task: any) => task.done).length;
+    }
+
+    const savedFocusSeconds = localStorage.getItem('avora_focus_seconds');
+    let focusHrs = '0.0h';
+    if (savedFocusSeconds) {
+      focusHrs = (Number(savedFocusSeconds) / 3600).toFixed(1) + 'h';
+    } else {
+      focusHrs = '2.4h';
+    }
+
+    const completionRate = totalTasksCount > 0 ? Math.round((completedTasksCount / totalTasksCount) * 100) : 0;
+
+    setProfileStats({
+      total: totalTasksCount,
+      completed: completedTasksCount,
+      focusTime: focusHrs,
+      completionRate
+    });
+  };
+
+  useEffect(() => {
+    if (isProfileOpen) {
+      loadProfileStats();
+    }
+  }, [isProfileOpen]);
+
+  const handleProfileNameChange = (val: string) => {
+    setProfileName(val);
+    localStorage.setItem('avora_profile_name', val);
+  };
+  const handleProfileEmailChange = (val: string) => {
+    setProfileEmail(val);
+    localStorage.setItem('avora_profile_email', val);
+  };
+  const handleProfileAvatarChange = (val: string) => {
+    setProfileAvatar(val);
+    localStorage.setItem('avora_profile_avatar', val);
+  };
 
   useEffect(() => {
     const handleResize = () => setWindowWidth(window.innerWidth);
@@ -228,7 +290,9 @@ export function Layout() {
       {isMobile && (
         <aside style={mobileSidebarStyle}>
           <div style={{ padding: '20px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderBottom: `1px solid ${t.borderSubtle}` }}>
-            <AvoraLogo size="default" />
+            <div style={{ cursor: 'pointer' }} onClick={() => { navigate('/'); setIsMobileDrawerOpen(false); }}>
+              <AvoraLogo size="default" />
+            </div>
             <button onClick={() => setIsMobileDrawerOpen(false)} style={{ background: 'none', border: 'none', color: t.text, cursor: 'pointer' }}>
               <X size={20} />
             </button>
@@ -257,7 +321,9 @@ export function Layout() {
               <div style={{ width: 24, height: 24, borderRadius: 6, background: 'linear-gradient(135deg, #8B5CF6, #6366F1)', boxShadow: '0 0 10px rgba(139,92,246,0.6)' }} />
             ) : (
               <>
-                <AvoraLogo size="default" />
+                <div style={{ cursor: 'pointer' }} onClick={() => navigate('/')}>
+                  <AvoraLogo size="default" />
+                </div>
                 <div style={{ marginTop: 4, fontSize: 10, color: t.textDim, letterSpacing: '0.06em' }}>
                   Productivity Mode <span style={{ color: t.primary }}>PRO</span>
                 </div>
@@ -373,8 +439,21 @@ export function Layout() {
               <Bell size={15} />
               <span style={{ position: 'absolute', top: 5, right: 6, width: 6, height: 6, borderRadius: '50%', background: '#EF4444' }} />
             </button>
-            <div style={{ width: 32, height: 32, borderRadius: '50%', background: 'linear-gradient(135deg, #8B5CF6, #A855F7)', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', boxShadow: '0 0 12px rgba(139,92,246,0.4)', flexShrink: 0 }}>
-              <User size={15} color="white" />
+            <div
+              onClick={() => setIsProfileOpen(true)}
+              style={{
+                width: 32, height: 32, borderRadius: '50%',
+                background: avatarGradients[profileAvatar as keyof typeof avatarGradients] || avatarGradients.purple,
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                cursor: 'pointer',
+                boxShadow: `0 0 12px ${(profileAvatar === 'purple' || profileAvatar === 'indigo') ? 'rgba(139,92,246,0.4)' : profileAvatar === 'blue' ? 'rgba(6,182,212,0.4)' : 'rgba(236,72,153,0.4)'}`,
+                flexShrink: 0,
+                fontSize: 13,
+                fontWeight: 700,
+                color: 'white',
+              }}
+            >
+              {profileName.charAt(0).toUpperCase()}
             </div>
             
             {/* Show Add Task in header for Desktop/Tablet */}
@@ -420,6 +499,193 @@ export function Layout() {
           <PlusCircle size={28} />
         </button>
       )}
+      {/* Profile Drawer Overlay & Content */}
+      <AnimatePresence>
+        {isProfileOpen && (
+          <>
+            {/* Drawer Backdrop */}
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setIsProfileOpen(false)}
+              style={{
+                position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', zIndex: 100,
+                backdropFilter: 'blur(4px)', WebkitBackdropFilter: 'blur(4px)'
+              }}
+            />
+            {/* Drawer Panel */}
+            <motion.div
+              initial={{ x: '100%' }}
+              animate={{ x: 0 }}
+              exit={{ x: '100%' }}
+              transition={{ type: 'spring', damping: 25, stiffness: 200 }}
+              style={{
+                position: 'fixed', right: 0, top: 0, bottom: 0,
+                width: isMobile ? '100%' : 380,
+                background: t.cardBg,
+                backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)',
+                borderLeft: `1px solid ${t.border}`,
+                boxShadow: t.shadow,
+                zIndex: 101,
+                display: 'flex', flexDirection: 'column',
+                padding: '24px',
+                color: t.text,
+              }}
+            >
+              {/* Header */}
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24 }}>
+                <h3 style={{ fontSize: 18, fontWeight: 700 }}>User Profile</h3>
+                <button
+                  onClick={() => setIsProfileOpen(false)}
+                  style={{ background: 'none', border: 'none', color: t.textMuted, cursor: 'pointer', display: 'flex' }}
+                >
+                  <X size={20} />
+                </button>
+              </div>
+
+              {/* Profile Card & Details */}
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 20, flex: 1, overflowY: 'auto' }}>
+                {/* Big Avatar Display */}
+                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 12, padding: '20px 0' }}>
+                  <div style={{
+                    width: 72, height: 72, borderRadius: '50%',
+                    background: avatarGradients[profileAvatar as keyof typeof avatarGradients] || avatarGradients.purple,
+                    boxShadow: '0 0 20px rgba(139,92,246,0.3)',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    fontSize: 28, fontWeight: 800, color: 'white'
+                  }}>
+                    {profileName.charAt(0).toUpperCase()}
+                  </div>
+                  <div style={{ fontSize: 16, fontWeight: 700 }}>{profileName}</div>
+                  <div style={{ fontSize: 12, color: t.textMuted, marginTop: -8 }}>{profileEmail}</div>
+                </div>
+
+                {/* Edit Form */}
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+                    <label style={{ fontSize: 11, fontWeight: 600, color: t.textMuted }}>Display Name</label>
+                    <input
+                      type="text"
+                      value={profileName}
+                      onChange={e => handleProfileNameChange(e.target.value)}
+                      placeholder="Enter name"
+                      style={{
+                        background: t.inputBg, border: `1px solid ${t.border}`,
+                        borderRadius: 10, padding: '8px 12px', color: t.text, fontSize: 13,
+                        outline: 'none', width: '100%'
+                      }}
+                    />
+                  </div>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+                    <label style={{ fontSize: 11, fontWeight: 600, color: t.textMuted }}>Email Address</label>
+                    <input
+                      type="email"
+                      value={profileEmail}
+                      onChange={e => handleProfileEmailChange(e.target.value)}
+                      placeholder="Enter email"
+                      style={{
+                        background: t.inputBg, border: `1px solid ${t.border}`,
+                        borderRadius: 10, padding: '8px 12px', color: t.text, fontSize: 13,
+                        outline: 'none', width: '100%'
+                      }}
+                    />
+                  </div>
+                </div>
+
+                {/* Avatar Gradient Selector */}
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                  <label style={{ fontSize: 11, fontWeight: 600, color: t.textMuted }}>Avatar Theme</label>
+                  <div style={{ display: 'flex', gap: 10 }}>
+                    {Object.keys(avatarGradients).map(name => {
+                      const active = profileAvatar === name;
+                      return (
+                        <button
+                          key={name}
+                          onClick={() => handleProfileAvatarChange(name)}
+                          style={{
+                            width: 28, height: 28, borderRadius: '50%',
+                            background: avatarGradients[name as keyof typeof avatarGradients],
+                            border: active ? `2px solid ${t.primary}` : '2px solid transparent',
+                            boxShadow: active ? '0 0 10px rgba(139,92,246,0.6)' : 'none',
+                            cursor: 'pointer',
+                            outline: 'none',
+                          }}
+                        />
+                      );
+                    })}
+                  </div>
+                </div>
+
+                {/* Theme Preference Selector */}
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+                  <label style={{ fontSize: 11, fontWeight: 600, color: t.textMuted }}>Theme Preference</label>
+                  <div style={{ display: 'flex', gap: 6, background: t.inputBg, border: `1px solid ${t.border}`, borderRadius: 12, padding: 4 }}>
+                    {(['dark', 'light', 'system'] as const).map(th => {
+                      const active = theme === th;
+                      return (
+                        <button
+                          key={th}
+                          onClick={() => setTheme(th)}
+                          style={{
+                            flex: 1, padding: '6px 8px', borderRadius: 9, fontSize: 11, cursor: 'pointer', border: 'none',
+                            background: active ? 'linear-gradient(135deg,#8B5CF6,#6366F1)' : 'transparent',
+                            color: active ? 'white' : t.textMuted, fontWeight: active ? 600 : 400, textTransform: 'capitalize',
+                            transition: 'all 0.2s',
+                          }}
+                        >
+                          {th}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+
+                {/* Productivity Stats Summary */}
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 10, marginTop: 10, borderTop: `1px solid ${t.borderSubtle}`, paddingTop: 20 }}>
+                  <label style={{ fontSize: 12, fontWeight: 700, color: t.text }}>Workspace Stats</label>
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
+                    <div style={{ background: 'rgba(255,255,255,0.02)', border: `1px solid ${t.borderSubtle}`, borderRadius: 12, padding: '10px 12px' }}>
+                      <div style={{ fontSize: 9, color: t.textMuted }}>Total Tasks</div>
+                      <div style={{ fontSize: 18, fontWeight: 700, color: t.text }}>{profileStats.total}</div>
+                    </div>
+                    <div style={{ background: 'rgba(255,255,255,0.02)', border: `1px solid ${t.borderSubtle}`, borderRadius: 12, padding: '10px 12px' }}>
+                      <div style={{ fontSize: 9, color: t.textMuted }}>Completed</div>
+                      <div style={{ fontSize: 18, fontWeight: 700, color: '#10B981' }}>{profileStats.completed}</div>
+                    </div>
+                    <div style={{ background: 'rgba(255,255,255,0.02)', border: `1px solid ${t.borderSubtle}`, borderRadius: 12, padding: '10px 12px' }}>
+                      <div style={{ fontSize: 9, color: t.textMuted }}>Focus Time</div>
+                      <div style={{ fontSize: 18, fontWeight: 700, color: '#A855F7' }}>{profileStats.focusTime}</div>
+                    </div>
+                    <div style={{ background: 'rgba(255,255,255,0.02)', border: `1px solid ${t.borderSubtle}`, borderRadius: 12, padding: '10px 12px' }}>
+                      <div style={{ fontSize: 9, color: t.textMuted }}>Completion Rate</div>
+                      <div style={{ fontSize: 18, fontWeight: 700, color: t.primary }}>{profileStats.completionRate}%</div>
+                    </div>
+                  </div>
+                  
+                  {/* Progress bar */}
+                  <div style={{ height: 4, borderRadius: 2, background: isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.06)', width: '100%', overflow: 'hidden', marginTop: 4 }}>
+                    <div style={{ height: '100%', width: `${profileStats.completionRate}%`, background: 'linear-gradient(90deg, #8B5CF6, #A855F7)', borderRadius: 2 }} />
+                  </div>
+                </div>
+              </div>
+
+              {/* Close footer */}
+              <button
+                onClick={() => setIsProfileOpen(false)}
+                style={{
+                  background: 'linear-gradient(135deg, #8B5CF6, #6366F1)', border: 'none',
+                  borderRadius: 10, padding: '12px', color: 'white', cursor: 'pointer',
+                  fontSize: 14, fontWeight: 600, boxShadow: '0 4px 14px rgba(139,92,246,0.3)',
+                  textAlign: 'center', marginTop: 24, width: '100%'
+                }}
+              >
+                Close Profile
+              </button>
+            </motion.div>
+          </>
+        )}
+      </AnimatePresence>
     </div>
   );
 }

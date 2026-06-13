@@ -344,7 +344,7 @@ export function TaskManagement() {
       </div>
 
       {/* Task List Container */}
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 12, paddingBottom: 100 }}>
         {filtered.length === 0 ? (
           <div style={{ ...card, textAlign: 'center', padding: '48px', color: t.textMuted }}>
             <AlertCircle size={24} style={{ margin: '0 auto 12px', color: t.textDim }} />
@@ -425,13 +425,13 @@ export function TaskManagement() {
                     <AnimatePresence>
                       {activeMenu === task.id && (
                         <>
-                          <div onClick={() => setActiveMenu(null)} style={{ position: 'fixed', inset: 0, zIndex: 10 }} />
+                          <div onClick={() => setActiveMenu(null)} style={{ position: 'fixed', inset: 0, zIndex: 39 }} />
                           <motion.div
                             initial={{ opacity: 0, scale: 0.95 }}
                             animate={{ opacity: 1, scale: 1 }}
                             exit={{ opacity: 0, scale: 0.95 }}
                             style={{
-                              position: 'absolute', right: 0, top: 24, zIndex: 11,
+                              position: 'absolute', right: 0, top: 24, zIndex: 40,
                               background: t.surface, border: `1px solid ${t.border}`, borderRadius: 10,
                               width: 160, padding: 6, boxShadow: t.shadow,
                             }}
@@ -447,11 +447,26 @@ export function TaskManagement() {
                             </button>
                             {task.status !== 'completed' && (
                               <button
-                                onClick={() => handleStatusChange(task.id, task.status === 'in_progress' ? 'pending' : 'in_progress')}
+                                onClick={() => handleStatusChange(task.id, 'completed')}
                                 style={{ width: '100%', display: 'flex', alignItems: 'center', gap: 8, padding: '8px 10px', background: 'none', border: 'none', borderRadius: 6, color: t.text, fontSize: 12, cursor: 'pointer', textAlign: 'left' }}
                               >
-                                {task.status === 'in_progress' ? <Clock size={13} /> : <Play size={13} />}
-                                {task.status === 'in_progress' ? 'Mark Pending' : 'Start Progress'}
+                                <Check size={13} /> Complete Task
+                              </button>
+                            )}
+                            {task.status !== 'in_progress' && (
+                              <button
+                                onClick={() => handleStatusChange(task.id, 'in_progress')}
+                                style={{ width: '100%', display: 'flex', alignItems: 'center', gap: 8, padding: '8px 10px', background: 'none', border: 'none', borderRadius: 6, color: t.text, fontSize: 12, cursor: 'pointer', textAlign: 'left' }}
+                              >
+                                <Play size={13} /> Start Progress
+                              </button>
+                            )}
+                            {task.status !== 'pending' && (
+                              <button
+                                onClick={() => handleStatusChange(task.id, 'pending')}
+                                style={{ width: '100%', display: 'flex', alignItems: 'center', gap: 8, padding: '8px 10px', background: 'none', border: 'none', borderRadius: 6, color: t.text, fontSize: 12, cursor: 'pointer', textAlign: 'left' }}
+                              >
+                                <Clock size={13} /> Mark Pending
                               </button>
                             )}
                             <button
