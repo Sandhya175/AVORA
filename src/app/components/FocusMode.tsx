@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from 'motion/react';
 import { Play, Pause, RotateCcw, SkipForward, Music, Volume2, VolumeX, Brain, Target, Coffee, Zap, CheckSquare } from 'lucide-react';
 import { useTheme, getTheme } from './ThemeContext';
 import { useIsMobile } from '../hooks/use-mobile';
-import { Task } from './TaskManagement';
+import { Task } from '../context/TaskContext';
 
 type FocusModeType = 'focus' | 'short' | 'long';
 

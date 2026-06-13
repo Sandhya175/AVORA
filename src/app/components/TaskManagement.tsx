@@ -126,8 +126,8 @@ function TaskCard({
       ref={dragRef}
       data-task-id={task.id}
       draggable
-      onDragStart={handleDragStart}
-      onDragEnd={handleDragEnd}
+      onDragStart={handleDragStart as any}
+      onDragEnd={handleDragEnd as any}
       onDragOver={handleDragOver}
       onDragLeave={handleDragLeave}
       onDrop={handleDrop}

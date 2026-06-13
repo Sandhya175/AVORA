@@ -4,7 +4,7 @@ import { motion } from 'motion/react';
 import { ChevronLeft, ChevronRight, Plus, Clock, AlertCircle, CheckSquare, Tag } from 'lucide-react';
 import { useTheme, getTheme } from './ThemeContext';
 import { useIsMobile } from '../hooks/use-mobile';
-import { Task } from './TaskManagement';
+import { Task } from '../context/TaskContext';
 
 const DAYS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 const MONTHS = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
