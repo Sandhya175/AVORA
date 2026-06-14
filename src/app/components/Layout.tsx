@@ -278,7 +278,7 @@ export function Layout() {
   const pageInfo = pageTitles[location.pathname] || { title: 'AVORA', sub: 'Productivity Platform' };
 
   return (
-    <div style={{ display: 'flex', minHeight: '100vh', background: t.bg }}>
+    <div style={{ display: 'flex', height: '100dvh', overflow: 'hidden', background: t.bg }}>
       
       {/* Mobile Drawer Overlay */}
       {isMobile && isMobileDrawerOpen && (
@@ -375,9 +375,8 @@ export function Layout() {
       {/* Main Container */}
       <div style={{
         marginLeft: activeSidebarWidth,
-        flex: 1, display: 'flex', flexDirection: 'column', minHeight: '100vh',
+        flex: 1, display: 'flex', flexDirection: 'column', height: '100dvh', overflow: 'hidden',
         transition: 'margin-left 0.3s ease',
-        overflowX: 'hidden'
       }}>
         {/* Top Header */}
         <header style={{
@@ -500,13 +499,19 @@ export function Layout() {
         </header>
 
         {/* Page Content */}
-        <main style={{ flex: 1, padding: isMobile ? '16px' : '24px', overflowY: 'auto' }}>
+        <main style={{
+          flex: 1,
+          padding: isMobile ? '16px' : '24px',
+          overflowY: location.pathname === '/app/ai' ? 'hidden' : 'auto',
+          display: 'flex',
+          flexDirection: 'column',
+        }}>
           <Outlet />
         </main>
       </div>
 
       {/* Floating Action Button (FAB) for Mobile Add Task */}
-      {isMobile && (
+      {isMobile && location.pathname !== '/app/ai' && (
         <button
           onClick={() => navigate('/app/tasks?add=true')}
           style={{

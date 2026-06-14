@@ -1,4 +1,5 @@
 import { useTheme, getTheme } from './ThemeContext';
+import { useIsMobile } from '../hooks/use-mobile';
 
 const CheckboxO = ({ size = 20 }: { size?: number }) => (
   <span
@@ -38,10 +39,11 @@ export function AvoraLogo({ size = 'default', forceLight }: AvoraLogoProps) {
   const { isDark } = useTheme();
   const dark = forceLight ? false : isDark;
   const t = getTheme(dark);
+  const isMobile = useIsMobile();
 
-  const fontSizes = { sm: 15, default: 21, lg: 26, hero: 96 };
-  const checkSizes = { sm: 13, default: 17, lg: 22, hero: 72 };
-  const gaps = { sm: 1, default: 2, lg: 3, hero: 8 };
+  const fontSizes = { sm: 15, default: 21, lg: 26, hero: isMobile ? 48 : 96 };
+  const checkSizes = { sm: 13, default: 17, lg: 22, hero: isMobile ? 36 : 72 };
+  const gaps = { sm: 1, default: 2, lg: 3, hero: isMobile ? 4 : 8 };
 
   const fs = fontSizes[size];
   const cs = checkSizes[size];

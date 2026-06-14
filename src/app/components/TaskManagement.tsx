@@ -54,6 +54,7 @@ function TaskCard({
   const dragRef = useRef<HTMLDivElement>(null);
   const [isDragging, setIsDragging] = useState(false);
   const [isDragOver, setIsDragOver] = useState(false);
+  const [isDraggable, setIsDraggable] = useState(false);
 
   // ── Custom HTML5 drag ────────────────────────────────────────────────────
 
@@ -125,15 +126,12 @@ function TaskCard({
     <motion.div
       ref={dragRef}
       data-task-id={task.id}
-      draggable
+      draggable={isDraggable}
       onDragStart={handleDragStart as any}
       onDragEnd={handleDragEnd as any}
       onDragOver={handleDragOver}
       onDragLeave={handleDragLeave}
       onDrop={handleDrop}
-      onTouchStart={handleTouchStart}
-      onTouchMove={handleTouchMove}
-      onTouchEnd={handleTouchEnd}
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, y: -6 }}
@@ -173,6 +171,12 @@ function TaskCard({
         {/* Drag handle */}
         <div
           draggable={false}
+          onMouseDown={() => setIsDraggable(true)}
+          onMouseUp={() => setIsDraggable(false)}
+          onMouseLeave={() => setIsDraggable(false)}
+          onTouchStart={handleTouchStart}
+          onTouchMove={handleTouchMove}
+          onTouchEnd={handleTouchEnd}
           style={{
             color: isDark ? 'rgba(255,255,255,0.25)' : 'rgba(0,0,0,0.18)',
             cursor: 'grab', flexShrink: 0, display: 'flex', alignItems: 'center',
@@ -225,7 +229,10 @@ function TaskCard({
         {/* Options Menu Toggle */}
         <div style={{ position: 'relative' }}>
           <button
-            onClick={() => setActiveMenu(activeMenu === task.id ? null : task.id)}
+            onClick={(e) => {
+              e.stopPropagation();
+              setActiveMenu(activeMenu === task.id ? null : task.id);
+            }}
             style={{ background: 'none', border: 'none', cursor: 'pointer', color: t.textMuted, display: 'flex' }}
           >
             <MoreHorizontal size={18} />
@@ -255,7 +262,10 @@ function TaskCard({
                   ].map(({ icon, label, action, color }) => (
                     <button
                       key={label}
-                      onClick={action}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        action();
+                      }}
                       style={{
                         width: '100%', display: 'flex', alignItems: 'center', gap: 8,
                         padding: '9px 10px', background: 'none', border: 'none', borderRadius: 8,

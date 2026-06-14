@@ -168,7 +168,7 @@ export function AIAssistant() {
   const rate = tasks.length > 0 ? Math.round((tasks.filter(t => t.done).length / tasks.length) * 100) : 0;
 
   return (
-    <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 280px', gap: 20, height: isMobile ? 'calc(100vh - 160px)' : 'calc(100vh - 140px)' }}>
+    <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 280px', gap: 20, height: '100%', minHeight: 0 }}>
       {/* Chat Area */}
       <div style={{ ...card, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
         {/* Chat Header */}

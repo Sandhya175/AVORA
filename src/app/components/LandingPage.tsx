@@ -207,7 +207,7 @@ function DashboardMockup({ isDark }: { isDark: boolean }) {
           </div>
 
           {/* Mockup Stats */}
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 8 }}>
+          <div style={{ display: 'grid', gridTemplateColumns: isMobile ? 'repeat(2, 1fr)' : 'repeat(4, 1fr)', gap: 8 }}>
             {[
               { label: 'Tasks Today', value: '8' },
               { label: 'Completed', value: '5' },
