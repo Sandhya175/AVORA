@@ -4,7 +4,7 @@ AVORA is a modern productivity and task management web application designed to h
 
 The application combines task management, analytics, focus sessions, calendar planning, and AI-powered productivity assistance into a single platform. Built with a responsive design, AVORA delivers a seamless experience across desktop, tablet, and mobile devices.
 
-![AVORA Banner](./screenshots/avora-banner.png)
+<!-- ![AVORA Banner](./screenshots/avora-banner.png) -->
 
 ## 🌟 Project Overview
 
