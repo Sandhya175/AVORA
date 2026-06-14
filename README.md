@@ -27,18 +27,34 @@ The project was developed as part of a technical assessment for the Junior Websi
 
 - Create, edit, delete, and update tasks
 - Task categorization
-- Priority management (Low, Medium, High)
+- Priority management
 - Due date tracking
 - Task completion status
-- Search and filter functionality
+- Real-time search and filters
+- Drag & Drop task reordering
+- Local Storage persistence
+- Task progress tracking
+- Clear All Tasks functionality
+
+### 🔔 Notification Center
+
+- Notification drawer
+- Task created notifications
+- Task completed notifications
+- Due tomorrow reminders
+- Overdue task alerts
+- Mark as read
+- Mark all as read
+- Clear notifications
+- Browser notification support
 
 ### 📊 Productivity Dashboard
 
-- Overview of total tasks
-- Completed vs pending tasks
+- Dynamic task statistics
+- Completion percentage
+- Productivity score
 - Focus time tracking
-- Weekly productivity insights
-- Progress visualization
+- Live updates from task changes
 
 ### 📅 Calendar Planner
 
@@ -47,19 +63,21 @@ The project was developed as part of a technical assessment for the Junior Websi
 - Upcoming events tracking
 - Date-based task management
 
+### 🤖 AI Productivity Assistant
+
+- Smart task summaries
+- Urgent task recommendations
+- Daily productivity insights
+- Goal tracking suggestions
+- Frontend AI simulation
+
 ### 🎯 Focus Mode
 
 - Pomodoro timer
-- Focus and break sessions
+- Focus sessions
+- Short breaks
+- Long breaks
 - Session tracking
-- Productivity improvement tools
-
-### 🤖 AI Productivity Assistant
-
-- Task prioritization suggestions
-- Daily productivity summaries
-- Goal tracking assistance
-- Smart recommendations
 
 ### 📈 Analytics
 
@@ -76,6 +94,36 @@ The project was developed as part of a technical assessment for the Junior Websi
 - Smooth animations and transitions
 - Mobile-first optimization
 
+### ⚙️ Settings
+
+- Dark / Light / System theme
+- Productivity goals
+- User preferences persistence
+
+---
+
+## 📸 Screenshots
+
+### Landing Page
+
+![Landing Page](./screenshots/landing-page.jpeg)
+
+### Dashboard
+
+![Dashboard](./screenshots/dashboard.png)
+
+### Task Management
+
+![Tasks](./screenshots/task-management.png)
+
+### Analytics
+
+![Analytics](./screenshots/analytics.png)
+
+### AI Assistant
+
+![AI Assistant](./screenshots/ai-assistant.png)
+
 ---
 
 ## 🛠 Tech Stack
@@ -89,7 +137,6 @@ The project was developed as part of a technical assessment for the Junior Websi
 ### Styling
 
 - Tailwind CSS
-- Custom CSS
 - Framer Motion
 
 ### Routing
@@ -104,9 +151,17 @@ The project was developed as part of a technical assessment for the Junior Websi
 
 - Lucide React
 
+### State Management
+
+- React Context API
+
 ### Data Storage
 
 - Local Storage
+
+### Notifications
+
+- Browser Notification API
 
 ### Deployment
 
@@ -194,8 +249,9 @@ npm run preview
 
 ## 🌐 Live Demo
 
-**Deployment Link:**
-https://your-netlify-link.netlify.app
+🔗 Live Application:
+
+Explore the fully responsive AVORA Productivity Platform featuring task management, analytics, focus mode, AI assistant, notifications, drag-and-drop task sorting, and local storage persistence.
 
 ---
 
@@ -206,35 +262,59 @@ https://github.com/Sandhya175/AVORA
 
 ---
 
-## 📱 Responsive Design
+## 🚀 Key Highlights
 
-AVORA is optimized for:
-
-- Desktop Devices
-- Tablets
-- Mobile Phones
-- Modern Browsers
+- Fully responsive design (Mobile, Tablet, Desktop)
+- Drag & Drop task sorting
+- Notification Center with unread badge
+- Browser notifications
+- Local Storage persistence
+- AI Productivity Assistant
+- Focus Mode (Pomodoro Timer)
+- Productivity Analytics Dashboard
+- Dark & Light Theme Support
+- Glassmorphism SaaS UI
+- Modern TypeScript Architecture
 
 ---
 
 ## 🔮 Future Enhancements
 
-- Drag & Drop Task Sorting
 - Cloud Data Synchronization
 - Team Collaboration Features
-- Push Notifications
 - Advanced AI Productivity Insights
 - User Authentication & Profiles
 
 ---
 
+## ✅ Assignment Requirements Covered
+
+✔ Task CRUD Operations
+✔ Search & Filtering
+✔ Local Storage Persistence
+✔ Dashboard Statistics
+✔ Analytics & Charts
+✔ Calendar Integration
+✔ Focus Mode
+✔ AI Assistant
+✔ Notification System
+✔ Browser Notifications
+✔ Drag & Drop Sorting
+✔ Responsive Design
+✔ Dark / Light Theme
+✔ Production Deployment
+
 ## 👩‍💻 Developer
 
 **Sandhya Tiwari**
 
-Bachelor of Science in Information Technology
+B.Sc. Information Technology Student
 
-Passionate about Web Development, UI/UX Design, and Building Real-World Applications.
+### Connect With Me
+
+- GitHub: https://github.com/Sandhya175
+- LinkedIn: https://www.linkedin.com/in/sandhya-tiwari1752005/
+- Portfolio: https://sandhya-tiwari-portfolio.vercel.app/
 
 ---
 

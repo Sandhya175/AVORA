@@ -14,7 +14,7 @@
     "noEmit": true,
     "jsx": "react-jsx",
 
-    /* Relaxed Linting/Checking to match Figma-imported codebase */
+    /* Relaxed Linting/Checking codebase */
     "strict": false,
     "noImplicitAny": false,
     "noUnusedLocals": false,

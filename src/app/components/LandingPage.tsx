@@ -902,7 +902,7 @@ export function LandingPage() {
         <div style={{ cursor: 'pointer' }} onClick={() => scrollToSection('home')}>
           <AvoraLogo size="sm" />
         </div>
-        <div style={{ fontSize: 13, color: t.textDim }}>© 2026 AVORA. All rights reserved.</div>
+        <div style={{ fontSize: 13, color: t.textDim }}>© 2026 AVORA. Built by Sandhya Tiwari.</div>
         <div style={{ display: 'flex', gap: 20 }}>
           {['Privacy Policy', 'Terms of Service', 'Support'].map(l => (
             <button key={l} style={{ background: 'none', border: 'none', cursor: 'pointer', color: t.textDim, fontSize: 13 }}>{l}</button>
