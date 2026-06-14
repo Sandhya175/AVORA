@@ -7,7 +7,7 @@ import {
   Menu, X, PanelLeftClose, PanelLeft, PlusCircle, CheckCheck, Trash2
 } from 'lucide-react';
 import { useTheme, getTheme } from './ThemeContext';
-import { AvoraLogo } from './AvoraLogo';
+import { AvoraLogo, CheckboxO } from './AvoraLogo';
 import { useTaskContext } from '../context/TaskContext';
 
 const navItems = [
@@ -323,7 +323,7 @@ export function Layout() {
           {/* Logo */}
           <div style={{ padding: isSidebarCollapsed ? '20px 0' : '22px 20px 18px', borderBottom: `1px solid ${t.borderSubtle}`, display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
             {isSidebarCollapsed ? (
-              <div style={{ width: 24, height: 24, borderRadius: 6, background: 'linear-gradient(135deg, #8B5CF6, #6366F1)', boxShadow: '0 0 10px rgba(139,92,246,0.6)' }} />
+              <CheckboxO size={24} />
             ) : (
               <>
                 <div style={{ cursor: 'pointer' }} onClick={() => navigate('/')}>

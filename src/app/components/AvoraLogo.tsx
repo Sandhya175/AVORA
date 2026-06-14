@@ -1,7 +1,7 @@
 import { useTheme, getTheme } from './ThemeContext';
 import { useIsMobile } from '../hooks/use-mobile';
 
-const CheckboxO = ({ size = 20 }: { size?: number }) => (
+export const CheckboxO = ({ size = 20 }: { size?: number }) => (
   <span
     style={{
       display: 'inline-flex',

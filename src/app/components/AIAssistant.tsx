@@ -168,7 +168,7 @@ export function AIAssistant() {
   const rate = tasks.length > 0 ? Math.round((tasks.filter(t => t.done).length / tasks.length) * 100) : 0;
 
   return (
-    <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 280px', gap: 20, height: '100%', minHeight: 0 }}>
+    <div style={{ display: 'grid', gridTemplateColumns: isMobile ? 'minmax(0, 1fr)' : 'minmax(0, 1fr) 280px', gap: 20, height: '100%', minHeight: 0 }}>
       {/* Chat Area */}
       <div style={{ ...card, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
         {/* Chat Header */}
@@ -263,14 +263,14 @@ export function AIAssistant() {
         {/* Input area */}
         <div style={{ padding: '14px 20px', borderTop: `1px solid ${t.borderSubtle}` }}>
           <div style={{ display: 'flex', gap: 10, alignItems: 'flex-end' }}>
-            <div style={{ flex: 1, display: 'flex', alignItems: 'center', gap: 8, background: t.inputBg, border: `1px solid ${t.border}`, borderRadius: 14, padding: '10px 14px' }}>
+            <div style={{ flex: 1, minWidth: 0, display: 'flex', alignItems: 'center', gap: 8, background: t.inputBg, border: `1px solid ${t.border}`, borderRadius: 14, padding: '10px 14px' }}>
               <button style={{ background: 'none', border: 'none', cursor: 'pointer', color: t.textDim, display: 'flex', flexShrink: 0 }}><Paperclip size={15} /></button>
               <input
                 value={input}
                 onChange={e => setInput(e.target.value)}
                 onKeyDown={e => e.key === 'Enter' && !e.shiftKey && sendMessage(input)}
                 placeholder="Ask AVORA AI about your tasks..."
-                style={{ flex: 1, background: 'transparent', border: 'none', outline: 'none', color: t.text, fontSize: 13.5 }}
+                style={{ flex: 1, minWidth: 0, background: 'transparent', border: 'none', outline: 'none', color: t.text, fontSize: 13.5 }}
               />
               <button style={{ background: 'none', border: 'none', cursor: 'pointer', color: t.textDim, display: 'flex', flexShrink: 0 }}><Mic size={15} /></button>
             </div>
