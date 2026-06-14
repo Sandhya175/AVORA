@@ -324,7 +324,7 @@ export function TaskManagement() {
   const [searchParams, setSearchParams] = useSearchParams();
 
   const {
-    tasks, addTask, editTask, deleteTask, reorderTasks,
+    tasks, addTask, editTask, deleteTask, reorderTasks, clearAllTasks,
   } = useTaskContext();
 
   // Filters
@@ -337,6 +337,7 @@ export function TaskManagement() {
   const [showAdd, setShowAdd] = useState(false);
   const [editingTask, setEditingTask] = useState<Task | null>(null);
   const [taskToDelete, setTaskToDelete] = useState<string | null>(null);
+  const [showClearConfirm, setShowClearConfirm] = useState(false);
   const [activeMenu, setActiveMenu] = useState<string | null>(null);
 
   // New task form fields
@@ -479,6 +480,23 @@ export function TaskManagement() {
             })}
           </div>
 
+          {tasks.length > 0 && (
+            <button
+              onClick={() => setShowClearConfirm(true)}
+              style={{
+                display: 'flex', alignItems: 'center', gap: 6,
+                background: 'transparent', border: `1px solid ${t.border}`,
+                borderRadius: 10, padding: '10px 18px', color: '#EF4444', cursor: 'pointer',
+                fontSize: 13, fontWeight: 600, marginLeft: 'auto',
+                transition: 'all 0.2s',
+              }}
+              onMouseEnter={e => { e.currentTarget.style.background = 'rgba(239,68,68,0.08)'; }}
+              onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; }}
+            >
+              <Trash2 size={14} /> Clear All
+            </button>
+          )}
+
           <button
             onClick={() => setShowAdd(true)}
             style={{
@@ -486,7 +504,7 @@ export function TaskManagement() {
               background: 'linear-gradient(135deg,#8B5CF6,#6366F1)', border: 'none',
               borderRadius: 10, padding: '10px 18px', color: 'white', cursor: 'pointer',
               fontSize: 13, fontWeight: 600, boxShadow: '0 4px 14px rgba(139,92,246,0.35)',
-              marginLeft: 'auto',
+              marginLeft: tasks.length > 0 ? 0 : 'auto',
             }}
           >
             <Plus size={14} /> New Task
@@ -791,6 +809,48 @@ export function TaskManagement() {
                   style={{ background: '#EF4444', border: 'none', borderRadius: 10, padding: '10px 22px', color: 'white', cursor: 'pointer', fontSize: 13, fontWeight: 600, boxShadow: '0 4px 14px rgba(239,68,68,0.35)' }}
                 >
                   Delete
+                </button>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+
+      {/* Clear All Tasks Confirmation Modal overlay */}
+      <AnimatePresence>
+        {showClearConfirm && (
+          <div style={modalOverlay}>
+            <motion.div
+              initial={{ scale: 0.95, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.95, opacity: 0 }}
+              style={{ ...card, padding: '24px', width: '100%', maxWidth: 400, display: 'flex', flexDirection: 'column', gap: 16 }}
+            >
+              <div style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
+                <div style={{ width: 40, height: 40, borderRadius: '50%', background: 'rgba(239,68,68,0.12)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#EF4444', flexShrink: 0 }}>
+                  <Trash2 size={20} />
+                </div>
+                <div>
+                  <h3 style={{ fontSize: 15, fontWeight: 700, color: t.text }}>Clear All Tasks</h3>
+                  <p style={{ fontSize: 13, color: t.textMuted, marginTop: 2 }}>Are you sure you want to permanently delete all tasks? This action cannot be undone.</p>
+                </div>
+              </div>
+
+              <div style={{ display: 'flex', gap: 10, justifyContent: 'flex-end', marginTop: 10 }}>
+                <button
+                  onClick={() => setShowClearConfirm(false)}
+                  style={{ background: 'transparent', border: `1px solid ${t.border}`, borderRadius: 10, padding: '10px 18px', color: t.textMuted, cursor: 'pointer', fontSize: 13 }}
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={() => {
+                    clearAllTasks();
+                    setShowClearConfirm(false);
+                  }}
+                  style={{ background: '#EF4444', border: 'none', borderRadius: 10, padding: '10px 22px', color: 'white', cursor: 'pointer', fontSize: 13, fontWeight: 600, boxShadow: '0 4px 14px rgba(239,68,68,0.35)' }}
+                >
+                  Clear All
                 </button>
               </div>
             </motion.div>

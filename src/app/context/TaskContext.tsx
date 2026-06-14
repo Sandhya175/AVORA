@@ -51,6 +51,7 @@ interface TaskContextValue {
   markAllRead: () => void;
   deleteNotif: (id: string) => void;
   clearAllNotifs: () => void;
+  clearAllTasks: () => void;
 }
 
 // ─── Storage Keys ─────────────────────────────────────────────────────────────
@@ -346,6 +347,12 @@ export function TaskProvider({ children }: { children: ReactNode }) {
     [commitTasks]
   );
 
+  const clearAllTasks = useCallback(() => {
+    commitTasks([]);
+    const notif = makeNotif('deleted', '🗑 All tasks cleared from workspace');
+    pushNotif(notif);
+  }, [commitTasks, pushNotif]);
+
   // ── Notification actions ──────────────────────────────────────────────────
 
   const markNotifRead = useCallback((id: string) => {
@@ -402,6 +409,7 @@ export function TaskProvider({ children }: { children: ReactNode }) {
       markAllRead,
       deleteNotif,
       clearAllNotifs,
+      clearAllTasks,
     }),
     [
       tasks,
@@ -420,6 +428,7 @@ export function TaskProvider({ children }: { children: ReactNode }) {
       markAllRead,
       deleteNotif,
       clearAllNotifs,
+      clearAllTasks,
     ]
   );
 
