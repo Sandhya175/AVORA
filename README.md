@@ -4,7 +4,7 @@ AVORA is a modern productivity and task management web application designed to h
 
 The application combines task management, analytics, focus sessions, calendar planning, and AI-powered productivity assistance into a single platform. Built with a responsive design, AVORA delivers a seamless experience across desktop, tablet, and mobile devices.
 
----
+![AVORA Banner](./screenshots/avora-banner.png)
 
 ## 🌟 Project Overview
 
@@ -120,9 +120,17 @@ The project was developed as part of a technical assessment for the Junior Websi
 
 ![Analytics](./screenshots/analytics.png)
 
+### Focus Mode
+
+![Focus Mode](./screenshots/focus-mode.png)
+
 ### AI Assistant
 
 ![AI Assistant](./screenshots/ai-assistant.png)
+
+### Mobile Responsive
+
+![Mobile Responsive](./screenshots/mobile-responsive.jpg)
 
 ---
 
@@ -250,6 +258,7 @@ npm run preview
 ## 🌐 Live Demo
 
 🔗 Live Application:
+https://avora-productivity-app.netlify.app/
 
 Explore the fully responsive AVORA Productivity Platform featuring task management, analytics, focus mode, AI assistant, notifications, drag-and-drop task sorting, and local storage persistence.
 
